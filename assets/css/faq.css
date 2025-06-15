@@ -1,0 +1,78 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f8f8;
+}
+
+.faq-container {
+    max-width: 800px;
+    margin: 40px auto;
+    /* Increased margin for more space around the container */
+    padding: 40px;
+    /* Increased padding for more space inside the container */
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    /* Added shadow for a more modern look */
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    /* Increased bottom margin for more space between title and content */
+}
+
+.faq-item {
+    margin-bottom: 25px;
+    /* Increased space between FAQ items */
+}
+
+.faq-item h3 {
+    color: var(--primary-color);
+    cursor: pointer;
+    margin: 0;
+    padding: 15px;
+    /* Increased padding for better click area and visual spacing */
+    background: var(--quaternary-color);
+    border-radius: 5px;
+    font-size: 18px;
+    /* Increased font size for better readability */
+    font-weight: bold;
+}
+
+.faq-item p {
+    margin-top: 10px;
+    padding-left: 20px;
+    display: none;
+    color: #555;
+    font-size: 16px;
+    /* Increased font size for readability */
+}
+
+.faq-item.active p {
+    display: block;
+}
+
+.faq-item h3:hover {
+    background: var(--primary-color);
+    color: var(--quaternary-color);
+}
+
+@media screen and (max-width: 768px) {
+    .faq-container {
+        padding: 30px;
+    }
+
+    .faq-item h3 {
+        font-size: 16px;
+        padding: 12px;
+    }
+
+    .faq-item p {
+        font-size: 14px;
+    }
+}

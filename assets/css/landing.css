@@ -1,0 +1,246 @@
+body,
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;  
+  font-family: Arial, sans-serif;
+  background-color: var(--quaternary-color);
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  color: #1e1e1e;
+}
+
+body{
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+.question-container,
+.splash-container {
+  text-align: center;
+}
+
+.question-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.question-title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.question-button {
+  background-color: var(--primary-color);
+  border: none;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.question-button:hover {
+  background-color: var(--tertiary-color);
+}
+
+.splash-container {
+  animation: fadeOut 1.5s ease-in-out forwards;
+  animation-delay: 3s;
+  display: none;
+}
+
+.splash-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.splash-message {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.splash-logo {
+  width: 150px;
+  height: auto;
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.loading-bar {
+  width: 80%;
+  height: 10px;
+  background-color: var(--tertiary-color);
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 0 auto;
+  position: relative;
+}
+
+.loading-bar::before {
+  content: '';
+  display: block;
+  width: 0;
+  height: 100%;
+  background-color: var(--secondary-color);
+  animation: loading 3s linear forwards;
+}
+
+@keyframes loading {
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.transition-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: fadeIn 0.5s forwards;
+}
+
+.description {
+  font-size: 1.25rem;
+  /* Bigger paragraph text for readability */
+  line-height: 1.8;
+  /* Increase line spacing for readability */
+  margin-bottom: 1.5rem;
+  color: var(--secondary-color);
+  /* Softer white for the text */
+}
+
+@media (max-width: 768px) {
+  .description {
+    font-size: 1rem;
+    /* Adjust paragraph size */
+  }
+}
+
+
+header {
+  background-color: var(--quaternary-color);
+  /* Light greenish background for contrast */
+  padding: 3rem 0;
+  /* Add space above and below */
+  border-bottom: 2px solid var(--light-green-variant);
+  /* Subtle border for separation */
+}
+
+header .container {
+  max-width: 1000px;
+  /* Limit the width for better readability */
+  margin: 0 auto;
+  /* Center the container */
+  font-family: 'Arial', sans-serif;
+  /* Use a clean and professional font */
+  line-height: 1.8;
+  /* Improve line spacing for readability */
+  color: var(--dark-color);
+  /* Dark color for text contrast */
+  text-align: justify;
+}
+
+header .paragraph {    
+  margin: 0;
+  /* Reset margins */
+}
+
+header .paragraph span.goal-text {
+  font-weight: bold;
+  /* Highlight the goal text */
+  color: var(--secondary-color);
+  /* Use primary color for emphasis */
+  display: block;
+  /* Ensure it stands out as a separate line */
+  margin-top: 1rem;
+  /* Add space above */
+}
+
+header h1,
+header h2 {
+  color: var(--secondary-color);
+  /* Use secondary color for headings */
+  margin-bottom: 1rem;
+  /* Add space below headings */
+}
+
+header a {
+  color: var(--tertiary-color);
+  /* Use tertiary color for links */
+  text-decoration: none;
+  /* Remove underline */
+}
+
+header a:hover {
+  text-decoration: underline;
+  /* Add underline on hover */
+  color: var(--green-variant);
+  /* Change to a vibrant green variant on hover */
+}
+
+.button-list .button{
+  background-color: green;
+  color: white;
+  padding: 15px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 20px;
+  transition: background 0.3s;
+  margin: 2px;    
+}
+
+.button-list-main .button{
+  background-color: green;
+  color: white;
+  padding: 15px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 20px;
+  transition: background 0.3s;
+  margin: 2px;    
+}
+
+.core-values{
+  font-size: 3rem;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background-color: var(--secondary-color);
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
