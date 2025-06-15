@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dream Big For College</title>
+  <title>Deeta's Website</title>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/landing_single.css">
 </head>
 
 <body>
   <div class="question-container">
-    <h1 class="heading-title">Welcome to Dream Big For College</h1>
+    <h1 class="heading-title">Welcome to Deeta's Website</h1>
     <img src="assets/images/dream_big_logo_green.png" alt="Logo" class="splash-logo">
     <header class="text-center">
       <div class="container" style="text-align: justify;">

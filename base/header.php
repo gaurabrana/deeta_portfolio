@@ -58,182 +58,155 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <div class="navbar-collapse justify-content-center mt-3">
                 <ul class="navbar-nav">
-                    <li class="nav-item mx-2 <?php echo $current_page == 'home.php' ? 'active-link' : ''; ?>">
-                        <a class="nav-link" href="home.php">Home</a>
-                    </li>
                     <li
-                        class="nav-item mx-2 dropdown about-nav-item <?php echo $current_page == 'about_us.php' ? 'active-link' : ''; ?>">                        
+                        class="nav-item mx-2 dropdown about-nav-item <?php echo $current_page == 'about_me.php' ? 'active-link' : ''; ?>">
                         <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            About Us
+                            About Me
                         </a>
                         <ul class="about-dropdown dropdown-menu">
-                            <li><a class="dropdown-item" href="about_us.php#who-are-we">Who are we ?</a></li>
-                            <li><a class="dropdown-item" href="about_us.php#our-mission">Mission</a></li>
-                            <li><a class="dropdown-item" href="about_us.php#our-vision">Vision</a></li>
-                            <li><a class="dropdown-item" href="about_us.php#core-values">Core Values</a></li>
-                            <li><a class="dropdown-item" href="about_us.php#our-story">Story</a></li>
-                            <li><a class="dropdown-item" href="about_us.php#approach">Approach</a></li>
-                            <li><a class="dropdown-item" href="about_us.php#our-impact">Impact</a></li>
+                            <li class="dropdown-submenu position-relative dropend">
+                                <a class="dropdown-item dropdown-toggle" href="about_me.php#who-am-i">Who am I</a>
+                                <ul class="dropdown-menu sub-dropdown">
+                                    <li><a class="dropdown-item" href="about_me.php#introduction">Introduction</a></li>
+                                    <li><a class="dropdown-item" href="about_me.php#leader">Am I a Leader</a></li>
+                                    <li><a class="dropdown-item" href="about_me.php#resilient">Am I Resilient</a></li>
+                                    <li><a class="dropdown-item" href="about_me.php#empathy">Do I Have an Empathy</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li><a class="dropdown-item" href="about_me.php#resume">Resume</a></li>
                         </ul>
                     </li>
 
                     <li
-                        class="nav-item dropdown mx-2 services-nav-item <?php echo $current_page == 'services.php' ? 'active-link' : ''; ?>">
+                        class="nav-item dropdown mx-2 school-nav-item <?php echo $current_page == 'schools.php' ? 'active-link' : ''; ?>">
                         <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Services
+                            Schools Attended
                         </a>
                         <ul class="dropdown-menu">
-                            <!-- College Admission Counselling -->
+                            <!-- Morning Side Elementary School -->
                             <li>
-                                <a class="dropdown-item" href="services.php#College_Admission_Counselling">
-                                    College Admission Counselling
+                                <a class="dropdown-item" href="schools.php#morning_side_elementary_school">
+                                    Morning Side Elementary School
                                 </a>
                             </li>
 
-                            <!-- Essays Review -->
+                            <!-- Pearson Middle School -->
                             <li>
-                                <a class="dropdown-item" href="services.php#Essays_Review">
-                                    Essays Review
+                                <a class="dropdown-item" href="schools.php#pearson_middle_school">
+                                    Pearson Middle School
                                 </a>
                             </li>
 
-                            <!-- Scholarship and Financial Aid (FAFSA) Counselling -->
+                            <!-- Reedy High School -->
                             <li>
-                                <a class="dropdown-item" href="services.php#Financial_Aid_Counselling">
-                                    Scholarship & Financial Aid (FAFSA) Counselling
-                                </a>
-                            </li>
-
-                            <!-- Extra-Curricular activities Counselling -->
-                            <li>
-                                <a class="dropdown-item" href="services.php#Extra_Curricular">
-                                    Extra-Curricular activities Counselling
-                                </a>
-                            </li>
-
-                            <!-- Interview Counselling -->
-                            <li>
-                                <a class="dropdown-item" href="services.php#Interview_Counselling">
-                                    Interview Counselling
-                                </a>
-                            </li>
-
-                            <!-- Career Navigation Counselling -->
-                            <li>
-                                <a class="dropdown-item" href="services.php#Career_Navigation_Counselling">
-                                    Career Navigation Counselling
-                                </a>
-                            </li>
-
-                            <!-- Research Paper Counselling -->
-                            <li>
-                                <a class="dropdown-item" href="services.php#Research_Paper_Counselling">
-                                    Research Paper Counselling
-                                </a>
-                            </li>
-
-                            <!-- Co-op and Internship Opportunities -->
-                            <li>
-                                <a class="dropdown-item" href="services.php#Co_Internship_Opportunities">
-                                    Co-op and Internship Opportunities
-                                </a>
-                            </li>
-
-                            <!-- SAT/ACT Coaching -->
-                            <li>
-                                <a class="dropdown-item" href="services.php#SAT_ACT_Coaching">
-                                    SAT/ACT Coaching
-                                </a>
-                            </li>
-
-                            <!-- Building Communication Skills -->
-                            <li>
-                                <a class="dropdown-item" href="services.php#Building_Communication_Skills">
-                                    Building Communication Skills
-                                </a>
-                            </li>
-
-                            <!-- Leadership Guidance -->
-                            <li>
-                                <a class="dropdown-item" href="services.php#Leadership_Guidance">
-                                    Leadership Guidance
+                                <a class="dropdown-item" href="schools.php#reedy_high_school">
+                                    Reedy High School
                                 </a>
                             </li>
                         </ul>
                     </li>
 
-                    <!-- <li class="nav-item mx-2 <?php echo $current_page == 'reviews.php' ? 'active-link' : ''; ?>">
-                        <a class="nav-link" href="reviews.php">Reviews</a>
-                    </li> -->
-                    <li class="nav-item mx-2 <?php echo $current_page == 'message.php' ? 'active-link' : ''; ?>">
-                        <a class="nav-link" href="givingback.php">Giving Back</a>
-                    </li>                   
                     <li
-                        class="nav-item mx-2 dropdown gallery-nav-item <?php echo ($current_page == 'gallery_image.php' || $current_page == 'gallery_video.php') ? 'active-link' : ''; ?>">                        
+                        class="nav-item dropdown mx-2 sports-nav-item <?php echo $current_page == 'sports.php' ? 'active-link' : ''; ?>">
+                        <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Sports
+                        </a>
+                        <ul class="dropdown-menu">
+                            <!-- Soccer -->
+                            <li>
+                                <a class="dropdown-item" href="sports.php#soccer">
+                                    Soccer
+                                </a>
+                            </li>
+
+                            <!-- Swimming -->
+                            <li>
+                                <a class="dropdown-item" href="sports.php#swimming">
+                                    Swimming
+                                </a>
+                            </li>
+
+                            <!-- Basketball -->
+                            <li>
+                                <a class="dropdown-item" href="sports.php#basketball">
+                                    Basketball
+                                </a>
+                            </li>
+
+                            <!-- Volleyball -->
+                            <li>
+                                <a class="dropdown-item" href="sports.php#volleyball">
+                                    Volleyball
+                                </a>
+                            </li>
+
+                            <!-- Track -->
+                            <li>
+                                <a class="dropdown-item" href="sports.php#track">
+                                    Track
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li
+                        class="nav-item dropdown mx-2 scouting-nav-item <?php echo $current_page == 'scouting.php' ? 'active-link' : ''; ?>">
+                        <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Scouting
+                        </a>
+                        <ul class="dropdown-menu">
+                            <!-- Girls Scout -->
+                            <li>
+                                <a class="dropdown-item" href="scouting.php#girls_scount">
+                                    Girls Scout
+                                </a>
+                            </li>
+
+                            <!-- Boys Scout -->
+                            <li>
+                                <a class="dropdown-item" href="scouting.php#boys_scout">
+                                    Boys Scout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item mx-2 <?php echo $current_page == 'research.php' ? 'active-link' : ''; ?>">
+                        <a class="nav-link" href="research.php">Research</a>
+                    </li>
+                    <li class="nav-item mx-2 <?php echo $current_page == 'research.php' ? 'active-link' : ''; ?>">
+                        <a class="nav-link" href="moment_of_truth.php">Moment Of Truth</a>
+                    </li>
+                    <li
+                        class="nav-item dropdown mx-2 givingback-nav-item <?php echo $current_page == 'givingback.php' ? 'active-link' : ''; ?>">
+                        <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                            href="#">Giving Back</a>
+                        <ul class="dropdown-menu">
+                            <!-- Giving Back to My School -->
+                            <li>
+                                <a class="dropdown-item" href="givingback.php#giving_back_to_school">
+                                    Giving Back to My School
+                                </a>
+                            </li>
+
+                            <!-- Giving Back to My Community -->
+                            <li>
+                                <a class="dropdown-item" href="givingback.php#giving_back_to_community">
+                                    Giving Back to My Community
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li
+                        class="nav-item mx-2 dropdown gallery-nav-item <?php echo ($current_page == 'gallery_image.php' || $current_page == 'gallery_video.php') ? 'active-link' : ''; ?>">
                         <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Gallery
                         </a>
                         <ul class="gallery-dropdown dropdown-menu">
-                            <li><a class="dropdown-item" href="gallery_image.php">Images</a></li>
-                            <li><a class="dropdown-item" href="gallery_video.php">Videos</a></li>                            
+                            <li><a class="dropdown-item" href="gallery_image.php">Photos</a></li>
+                            <li><a class="dropdown-item" href="gallery_video.php">Videos</a></li>
                         </ul>
                     </li>
-                    <li  class="nav-item mx-2"><a class="nav-link" type="button" data-bs-toggle="modal" data-bs-target="#contactUs" class="footer-link">Contact Us</a></li>
-
             </div>
         </div>
     </div>
 </nav>
-
-
-<!-- Full-width dropdown container -->
-<!-- <div class="services-dropdown-container dropdown-container">
- 
-                        <div
-                            class="services-title-container <?php echo $current_page == 'services.php' ? 'active-link' : ''; ?>">
-                            <span class="services-title">Our Services</span>
-                            <hr class="title-line">
-                        </div>
-                        
-                        <div class="services-items-container">
-                            <ul class="services-dropdown">
-                                <li><a class="dropdown-item" href="services.php#College_Admission_Counselling">College
-                                        Admission Counselling</a></li>
-                                <li><a class="dropdown-item" href="services.php#Essays_Review">Essays Review</a></li>
-                                <li><a class="dropdown-item" href="services.php#Financial_Aid_Counselling">Financial Aid
-                                        Counselling</a></li>
-                                <li><a class="dropdown-item" href="services.php#Scholarship_Opportunities">Scholarship
-                                        Opportunities</a></li>
-                                <li><a class="dropdown-item" href="services.php#Co_Internship_Opportunities">Co-op and
-                                        Internship Opportunities</a></li>
-                                <li><a class="dropdown-item" href="services.php#Career_Navigation_Counselling">Career
-                                        Navigation Counselling</a></li>
-                                <li><a class="dropdown-item" href="services.php#SAT_ACT_Coaching">SAT/ACT Coaching</a>
-                                </li>
-                                <li><a class="dropdown-item" href="services.php#Building_Communication_Skills">Building
-                                        Communication Skills</a></li>
-                                <li><a class="dropdown-item" href="services.php#Leadership_Guidance">Leadership
-                                        Guidance</a></li>
-                            </ul>
-
-                        </div>
-                    </div> -->
-
-
-<!-- <div class="about-dropdown-container dropdown-container">                        
-                        <div
-                            class="services-title-container <?php echo $current_page == 'about_us.php' ? 'active-link' : ''; ?>">
-                            <span class="services-title">About Us</span>
-                            <hr class="title-line">
-                        </div>
-                        
-                        <div class="services-items-container">
-                            <ul class="services-dropdown">
-                                <li><a class="dropdown-item" href="about_us.php#our-mission">Our Mission</a></li>
-                                <li><a class="dropdown-item" href="about_us.php#our-vision">Our Vision</a></li>
-                                <li><a class="dropdown-item" href="about_us.php#our-story">Our Story</a></li>
-                                <li><a class="dropdown-item" href="about_us.php#approach">Our Approach</a></li>
-                                <li><a class="dropdown-item" href="about_us.php#our-impact">Our Impact</a></li>
-                            </ul>
-                        </div>
-                    </div> -->
