@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About me</title>
+    <title>Scouts</title>
     <?php
     include("base/header.php");
     ?>
@@ -26,7 +26,7 @@
                 $query = "SELECT s.id, s.slug, s.title, p.slug as pageSlug 
           FROM sections s 
           JOIN pages p ON s.page_id = p.id 
-          WHERE p.slug = 'about_me'";
+          WHERE p.slug = 'scouting'";
 
                 $result = $conn->query($query);
 

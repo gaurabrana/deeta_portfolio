@@ -1,6 +1,8 @@
 <?php
 // Determine the current page
 $current_page = basename($_SERVER['PHP_SELF']);
+include('helper.php');
+include('database/connect.php');
 ?>
 
 <head>
