@@ -143,7 +143,7 @@ if ($stmt->execute()) {
     $output['section_slug'] = $section_slug;
     // Buffer the HTML output of your render function
     ob_start();
-    renderSingleMediaItem( $section_slug, 'Section Label', $output);
+    renderSingleMediaItem($output);
     $html = ob_get_clean();
 
     // Add the rendered HTML to the response
