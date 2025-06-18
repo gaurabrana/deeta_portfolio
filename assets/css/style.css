@@ -1278,6 +1278,7 @@ header h1 {
   margin: 0;
   font-family: 'Poppins', sans-serif;
   overflow-x: hidden;
+  overflow-y: hidden;
   position: relative;
   /* Enables pseudo-element positioning */
   z-index: 0;
@@ -1322,6 +1323,8 @@ section {
 
 .image-wrapper img {
   max-width: 100%;
+  width: 400px;
+  height: auto;
   transition: transform 0.3s ease;
 }
 
