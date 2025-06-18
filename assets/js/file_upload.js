@@ -1,8 +1,46 @@
-$(window).on('load', function () {
-
-});
-
 $(document).ready(function () {
+    $('.delete-media-btn').on('click', function () {
+        const sectionId = $(this).data('upload-id');
+        const statusBox = document.getElementById("delete-info-" + sectionId);
+        if (!sectionId) return;
+
+        if (!confirm('Are you sure you want to delete this media?')) return;
+
+        $.ajax({
+            url: './database/delete_upload.php',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ section_id: sectionId }),
+            success: function (response) {
+                console.log(response); // already a JS object
+                if (response.success) {
+                    const sectionEl = document.getElementById('media-preview-container-' + sectionId); // ensure this ID exists
+                    const sectionContainerForm = document.getElementById('upload-form-container-' + sectionId); // ensure this ID exists
+                    if (sectionEl) {
+                        sectionEl.innerHTML = '';
+                        sectionContainerForm.clear;
+                    }
+                    if (response.file_deleted) {
+                        statusBox.innerHTML = `<div class="text-success">Media record and file deleted successfully.</div>`;
+                    } else if (response.file_delete_error) {
+                        statusBox.innerHTML = `<div class="text-warning">Record deleted, but file could not be removed from server.</div>`;
+                    } else if (response.file_missing) {
+                        statusBox.innerHTML = `<div class="text-info">Record deleted. File was already missing.</div>`;
+                    } else {
+                        statusBox.innerHTML = `<div class="text-success">Record deleted (unknown file state).</div>`;
+                    }
+                } else {
+                    statusBox.innerHTML = '<div class="text-danger">Failed to delete media: ' + (response.error || 'Unknown error') + '</div>';
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log(error);
+                statusBox.innerHTML = '<div class="text-danger"> Error deleting media: ' + error + '</div > ';
+            }
+        });
+    });
+
+
     document.querySelectorAll('.media-input').forEach(input => {
         input.addEventListener('change', function () {
             const file = this.files[0];
@@ -48,16 +86,16 @@ $(document).ready(function () {
                 body: formData
             })
                 .then(res => res.json())  // read response body as raw text
-                .then(data => {                    
+                .then(data => {
                     if (data.success) {
                         statusBox.innerHTML = `<div class="text-success">${data.message}</div>`;
                         form.reset();
                         document.getElementById(previewId).innerHTML = '';
 
                         // Append the new HTML to the section container
-                        const sectionEl = document.getElementById(data.section_slug); // ensure this ID exists
+                        const sectionEl = document.getElementById('media-preview-container-' + data.sectionId); // ensure this ID exists
                         if (sectionEl) {
-                            sectionEl.insertAdjacentHTML('beforeend', data.html);
+                            sectionEl.innerHTML = data.html;
                         }
                     } else {
                         statusBox.innerHTML = `<div class="text-danger">${data.message}</div>`;

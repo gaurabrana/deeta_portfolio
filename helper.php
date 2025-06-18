@@ -38,6 +38,7 @@ function renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sect
             <input type="hidden" name="page_slug" value="$pageSlug">
             <input type="hidden" name="section_slug" value="$sectionSlug">
             <input type="hidden" name="section_id" value="$sectionId">
+            <input type="hidden" id="upload-form-container-$sectionId" name="form_id" value="$formId">
 
             <!-- Caption -->
             <div class="col-12">
@@ -75,6 +76,7 @@ HTML;
     if ($isEdit) {
         echo <<<HTML
                 <button type="button" class="btn btn-danger ms-2 delete-media-btn" data-upload-id="$sectionId">Delete</button>
+                <div class="mt-2" id="delete-info-$sectionId"></div>
 HTML;
     }
 
@@ -92,16 +94,17 @@ function renderMediaSection($conn, $pageSlug, $sectionId, $sectionSlug, $section
     $collapseId = "collapse-" . $sectionSlug;
     $headingId = "heading-" . $sectionSlug;
     // === FETCH MEDIA CONTENT FROM uploads TABLE ===
-    $stmt = $conn->prepare("SELECT path, caption, media_type, position FROM uploads WHERE section_id = ? ORDER BY id DESC");
+    $stmt = $conn->prepare("SELECT path, caption, media_type, position FROM uploads WHERE section_id = ? ORDER BY id DESC LIMIT 1");
     $stmt->bind_param("i", $sectionId);
     $stmt->execute();
     $result = $stmt->get_result();
     $uploads = $result->fetch_all(MYSQLI_ASSOC);  // fetch all rows at once
     $existingUpload = count($uploads) > 0 ? $uploads[0] : null;
+    $sectionContainerId = "section-container-$sectionId";
 
 
     echo <<<HTML
-    <section id="{$sectionSlug}" class="py-5">
+    <section id="{$sectionContainerId}" class="py-5">
         <div class="container">
             <p class="heading-3 text-center mb-5" data-aos="fade-up" data-aos-easing="linear" data-aos-duration="700">
                 {$sectionTitle}
@@ -132,21 +135,22 @@ HTML;
             </div>
 HTML;
 
-    foreach ($uploads as $media) {
+    if ($existingUpload) {
         $mediaHtml = '';
-        $mediaPath = htmlspecialchars($media['path']);
-        $caption = htmlspecialchars($media['caption']);
-        $position = ($media['position'] === 'right') ? 'order-lg-1' : 'order-lg-2';
-        $inversePosition = ($media['position'] === 'right') ? 'order-lg-2' : 'order-lg-1';
+        $mediaPath = htmlspecialchars($existingUpload['path']);
+        $caption = htmlspecialchars($existingUpload['caption']);
+        $position = ($existingUpload['position'] === 'right') ? 'order-lg-1' : 'order-lg-2';
+        $inversePosition = ($existingUpload['position'] === 'right') ? 'order-lg-2' : 'order-lg-1';
 
-        if ($media['media_type'] === 'image') {
+        if ($existingUpload['media_type'] === 'image') {
             $mediaHtml = "<img src='assets/images/uploads/{$mediaPath}' alt='Media' class='img-fluid rounded shadow'>";
-        } elseif ($media['media_type'] === 'video') {
+        } elseif ($existingUpload['media_type'] === 'video') {
             $mediaHtml = "<video src='assets/images/uploads/{$mediaPath}' controls class='img-fluid rounded shadow'></video>";
         }
 
         echo <<<HTML
-        <div class="row justify-content-center align-items-center mb-4 new-media-item">
+    <div id="media-preview-container-$sectionId">
+        <div class="row justify-content-center align-items-center mb-4">
             <div class="col-lg-6 col-md-12 {$position}" data-aos="fade-left">
                 <p class="paragraph text-justify mb-3">{$caption}</p>
             </div>
@@ -154,18 +158,15 @@ HTML;
                 {$mediaHtml}
             </div>
         </div>
+    </div>
 HTML;
     }
 
     echo "</div></section>";
 }
 
-function renderMediaSectionFromArray($sectionSlug, $sectionTitle, $mediaItems = [])
+function renderMediaSectionFromArray($mediaItems = [])
 {
-    echo <<<HTML
-    <section id="{$sectionSlug}" class="py-5">
-        <div class="container">        
-HTML;
 
     // === RENDER PROVIDED MEDIA ITEMS ===
     foreach ($mediaItems as $media) {
@@ -193,14 +194,12 @@ HTML;
         </div>
 HTML;
     }
-
-    echo "</div></section>";
 }
 
 
-function renderSingleMediaItem($sectionSlug, $sectionTitle, $mediaItem)
+function renderSingleMediaItem($mediaItem)
 {
-    renderMediaSectionFromArray($sectionSlug, $sectionTitle, [$mediaItem]);
+    renderMediaSectionFromArray([$mediaItem]);
 }
 
 function getExistingUploadBySectionId($conn, $sectionId)
