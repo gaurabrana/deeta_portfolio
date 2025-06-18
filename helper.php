@@ -99,12 +99,11 @@ function renderMediaSection($conn, $pageSlug, $sectionId, $sectionSlug, $section
     $stmt->execute();
     $result = $stmt->get_result();
     $uploads = $result->fetch_all(MYSQLI_ASSOC);  // fetch all rows at once
-    $existingUpload = count($uploads) > 0 ? $uploads[0] : null;
-    $sectionContainerId = "section-container-$sectionId";
+    $existingUpload = count($uploads) > 0 ? $uploads[0] : null;    
 
 
     echo <<<HTML
-    <section id="{$sectionContainerId}" class="py-5">
+    <section id="{$sectionSlug}" class="py-5">
         <div class="container">
             <p class="heading-3 text-center mb-5" data-aos="fade-up" data-aos-easing="linear" data-aos-duration="700">
                 {$sectionTitle}
