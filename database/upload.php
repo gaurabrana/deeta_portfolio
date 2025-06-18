@@ -136,14 +136,14 @@ $stmt->bind_param("issss", $section_id, $filename, $caption, $media_type, $posit
 if ($stmt->execute()) {
     $output['success'] = true;
     $output['message'] = ucfirst($media_type) . ' uploaded successfully.';
-    $output['media_url'] = $filename;
+    $output['path'] = $filename;
     $output['media_type'] = $media_type;
     $output['caption'] = htmlspecialchars($caption);
     $output['position'] = $position;
     $output['section_slug'] = $section_slug;
     // Buffer the HTML output of your render function
     ob_start();
-    renderSingleMediaItem($page_slug, $section_slug, 'Section Label', $output);
+    renderSingleMediaItem( $section_slug, 'Section Label', $output);
     $html = ob_get_clean();
 
     // Add the rendered HTML to the response
