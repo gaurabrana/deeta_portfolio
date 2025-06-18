@@ -31,7 +31,7 @@
                 $result = $conn->query($query);
 
                 while ($row = $result->fetch_assoc()) {
-                        renderMediaSection($conn, $row['pageSlug'], $row['id'], $row['slug'], $row['title']);
+                    renderMediaSection($conn, $row['pageSlug'], $row['id'], $row['slug'], $row['title']);
                 }
                 ?>
 
