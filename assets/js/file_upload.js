@@ -17,6 +17,7 @@ $(document).ready(function () {
                 if (response.success) {
                     const sectionEl = document.getElementById('media-preview-container-' + sectionId); // ensure this ID exists
                     const sectionContainerForm = document.getElementById('upload-form-container-' + sectionId); // ensure this ID exists
+                    // clear file input preview
                     clearPreviewElement(sectionContainerForm.value);
                     // clear section preview
                     if (sectionEl) {
@@ -29,21 +30,45 @@ $(document).ready(function () {
                     // clear fields
                     clearEditableFields(sectionContainerForm.value);
                     if (response.file_deleted) {
-                        statusBox.innerHTML = `<div class="text-success">Media record and file deleted successfully.</div>`;
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-success">Media record and file deleted successfully.</div>`,
+                            { duration: 3000 }
+                        );
                     } else if (response.file_delete_error) {
-                        statusBox.innerHTML = `<div class="text-warning">Record deleted, but file could not be removed from server.</div>`;
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-warning">Record deleted, but file could not be removed from server.</div>`,
+                            { duration: 3000 }
+                        );
                     } else if (response.file_missing) {
-                        statusBox.innerHTML = `<div class="text-info">Record deleted. File was already missing.</div>`;
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-info">Record deleted. File was already missing.</div>`,
+                            { duration: 3000 }
+                        );
                     } else {
-                        statusBox.innerHTML = `<div class="text-success">Record deleted (unknown file state).</div>`;
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-success">Record deleted (unknown file state).</div>`,
+                            { duration: 3000 }
+                        );
                     }
                 } else {
-                    statusBox.innerHTML = '<div class="text-danger">Failed to delete media: ' + (response.error || 'Unknown error') + '</div>';
+                    showTemporaryStatus(
+                        statusBox,
+                        '<div class="alert alert-danger">Failed to delete media: ' + (response.error || 'Unknown error') + '</div>',
+                        { duration: 3000 }
+                    );
                 }
             },
             error: function (xhr, status, error) {
                 console.log(error);
-                statusBox.innerHTML = '<div class="text-danger"> Error deleting media: ' + error + '</div > ';
+                showTemporaryStatus(
+                    statusBox,
+                    '<div class="alert alert-danger"> Error deleting media: ' + error + '</div > ',
+                    { duration: 3000 }
+                );
             }
         });
     });
@@ -87,7 +112,11 @@ $(document).ready(function () {
             const formData = new FormData(this);
 
             if (!fileInput.files.length) {
-                statusBox.innerHTML = '<div class="text-danger">Please select a file.</div>';
+                showTemporaryStatus(
+                    statusBox,
+                    '<div class="alert alert-danger">Please select a file.</div>',
+                    { duration: 3000 }
+                );
                 return;
             }
 
@@ -104,8 +133,12 @@ $(document).ready(function () {
                 .then(data => {
 
                     if (data.success) {
-                        // Successful upload
-                        statusBox.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                        // Successful upload                        
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-success">${data.message}</div>`,
+                            { duration: 3000 }
+                        );
 
                         // Clear any previous preview
                         document.getElementById(previewId).innerHTML = '';
@@ -118,7 +151,7 @@ $(document).ready(function () {
 
                         // for given form id, clear input file only
                         // because position and text value are already in ui
-                        clearFileInputs(formId);
+                        clearMediaFileInput(formId);
 
                         // Handle the media display based on scenario
                         if (data.file_deleted) {
@@ -150,17 +183,26 @@ $(document).ready(function () {
                         if (data.file_exists_but_not_deleted) {
                             errorMessage += ' (could not remove previous file)';
                         }
-                        statusBox.innerHTML = `<div class="alert alert-danger">${errorMessage}</div>`;
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-danger">${errorMessage}</div>`,
+                            { duration: 3000 }
+                        );
                     }
                 })
                 .catch(err => {
                     const statusBox = document.getElementById('upload-status');
                     console.error('Upload error:', err);
-                    statusBox.innerHTML = `
+                    showTemporaryStatus(
+                        statusBox,
+                        `
         <div class="alert alert-danger">
             Upload failed: ${err.message || 'Network or server error'}
         </div>
-    `;
+    `,
+                        { duration: 3000 }
+                    );
+
 
                     // Optional: Show more detailed error in console for debugging
                     if (err.response) {
@@ -213,32 +255,29 @@ function clearEditableFields(formId) {
  * @param {string|HTMLElement} form - Form ID or form element
  * @returns {boolean} - Returns true if successful, false if form not found
  */
-function clearFileInputs(form) {
-    // Get form element (accepts either ID or element)
-    const formEl = typeof form === 'string'
-        ? document.getElementById(form)
-        : form;
+function clearMediaFileInput(form) {
+    const formEl = typeof form === 'string' ? document.getElementById(form) : form;
+    if (!formEl) return false;
 
-    if (!formEl) {
-        console.error('Form element not found');
-        return false;
-    }
+    const fileInput = formEl.querySelector('input.media-input[type="file"]');
+    if (!fileInput) return false;
 
-    // Find all file inputs within the form
-    const fileInputs = formEl.querySelectorAll('input[type="file"]');
+    // Create new input with all original attributes
+    const newInput = document.createElement('input');
+    newInput.type = 'file';
 
-    fileInputs.forEach(input => {
-        // Create a new input element to completely reset
-        const newInput = input.cloneNode(false);
-
-        // Replace the existing input with the new one
-        input.parentNode.replaceChild(newInput, input);
-
-        // Alternative method (works in most modern browsers):
-        // input.value = ''; // Doesn't work in all browsers
-
-        console.log('Cleared file input:', input.name);
+    // Copy all attributes
+    Array.from(fileInput.attributes).forEach(attr => {
+        newInput.setAttribute(attr.name, attr.value);
     });
+
+    // Replace in DOM
+    fileInput.replaceWith(newInput);
+
+    // Trigger change event for any listeners
+    setTimeout(() => {
+        newInput.dispatchEvent(new Event('change'));
+    }, 0);
 
     return true;
 }
@@ -274,4 +313,45 @@ function clearPreviewElement(formId) {
     previewElement.innerHTML = '';
     console.log(`Cleared preview element: ${previewId}`);
     return true;
+}
+
+/**
+ * Shows a temporary status message in an element and clears it after delay
+ * @param {HTMLElement} element - The element to display the message in
+ * @param {string} message - The message to display
+ * @param {object} options - Configuration options
+ * @param {number} [options.duration=3000] - How long to show the message (ms)
+ * @param {string} [options.baseClass='status-message'] - Base CSS class
+ * @param {boolean} [options.keepSpace=false] - Whether to keep element height when empty
+ */
+function showTemporaryStatus(element, message, options = {}) {
+    // Default options
+    const {
+        duration = 3000,
+        baseClass = 'status-message',
+        keepSpace = false
+    } = options;
+
+    // Clear any existing timeout to prevent premature clearing
+    if (element._statusTimeout) {
+        clearTimeout(element._statusTimeout);
+    }
+
+    // Set the message
+    element.innerHTML = message;
+
+    // Add base class if not present
+    if (!element.classList.contains(baseClass)) {
+        element.classList.add(baseClass);
+    }
+
+    // Set timeout to clear
+    element._statusTimeout = setTimeout(() => {
+        if (keepSpace) {
+            element.innerHTML = '&nbsp;'; // Maintain layout
+        } else {
+            element.innerHTML = '';
+        }
+        element._statusTimeout = null;
+    }, duration);
 }

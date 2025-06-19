@@ -44,7 +44,7 @@ function renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sect
             <!-- Caption -->
             <div class="col-12">
                 <label for="$captionId" class="form-label">Text</label>
-                <textarea name="caption" id="$captionId" class="form-control editable-field" rows="2" placeholder="Write a caption...">$existingCaption</textarea>
+                <textarea name="caption" required id="$captionId" class="form-control editable-field" rows="2" placeholder="Write some description...">$existingCaption</textarea>
             </div>
 
             <!-- Media Position -->
@@ -64,10 +64,16 @@ function renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sect
                        data-form="$formId"
                        data-preview="$previewId"
                        data-status="$statusId"
-                       accept="image/*,video/*">
+                       accept="image/*,video/*"
+                       required
+                       >
                 <small class="form-text text-muted">Supported: JPG, PNG, WEBP, GIF, MP4, WebM, MOV (max 50MB)</small>
                 <div id="$previewId" class="mt-3">
-                    <h6>Existing File :</h6>
+HTML;
+    if ($isEdit) {
+        echo '<h6>Existing File :</h6>';
+    }
+    echo <<<HTML
                     $previewHtml
                 </div>
             </div>
