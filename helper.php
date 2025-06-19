@@ -64,8 +64,7 @@ function renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sect
                        data-form="$formId"
                        data-preview="$previewId"
                        data-status="$statusId"
-                       accept="image/*,video/*"
-                       required
+                       accept="image/*,video/*"                       
                        >
                 <small class="form-text text-muted">Supported: JPG, PNG, WEBP, GIF, MP4, WebM, MOV (max 50MB)</small>
                 <div id="$previewId" class="mt-3">

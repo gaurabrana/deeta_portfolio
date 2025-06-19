@@ -111,15 +111,6 @@ $(document).ready(function () {
 
             const formData = new FormData(this);
 
-            if (!fileInput.files.length) {
-                showTemporaryStatus(
-                    statusBox,
-                    '<div class="alert alert-danger">Please select a file.</div>',
-                    { duration: 3000 }
-                );
-                return;
-            }
-
             fetch('./database/upload.php', {
                 method: 'POST',
                 body: formData
@@ -131,7 +122,7 @@ $(document).ready(function () {
                     return res.json();
                 })
                 .then(data => {
-
+                    console.log(data);
                     if (data.success) {
                         // Successful upload                        
                         showTemporaryStatus(
@@ -163,19 +154,8 @@ $(document).ready(function () {
                         }
 
                         // Update the media display
-                        const sectionEl = document.getElementById('media-preview-container-' + data.section_slug);
-                        if (sectionEl) {
-                            // Either insert new or replace existing media
-                            sectionEl.innerHTML = data.html;
+                        updateMediaSection(data);
 
-                            // If it's a video, we might need to reload it for proper playback
-                            if (data.media_type === 'video') {
-                                const videos = sectionEl.getElementsByTagName('video');
-                                for (let video of videos) {
-                                    video.load();
-                                }
-                            }
-                        }
 
                     } else {
                         // Failed upload
@@ -354,4 +334,48 @@ function showTemporaryStatus(element, message, options = {}) {
         }
         element._statusTimeout = null;
     }, duration);
+}
+
+function updateMediaSection(data) {
+    const sectionEl = document.getElementById('media-preview-container-' + data.section_id);
+
+    if (!sectionEl) {
+        console.warn(`Section with id media-preview-container-${data.section_id} not found.`);
+        return;
+    }
+
+    console.log("Updating section", sectionEl);
+
+    // 1. Update <p> tag content (caption)
+    const pTag = sectionEl.querySelector('p');
+    if (pTag) {
+        pTag.textContent = data.caption || '';
+    }
+
+    // 2. Update <img> or <video> src
+    const mediaTag = sectionEl.querySelector('img, video');
+    if (mediaTag) {
+        mediaTag.setAttribute('src', 'assets/images/uploads/' + data.path);
+
+        if (data.media_type === 'video') {
+            mediaTag.load();
+        }
+    }
+
+    // 3. Update Bootstrap order classes
+    const leftCol = sectionEl.querySelector('.col-lg-6:not(.image-wrapper)');
+    const rightCol = sectionEl.querySelector('.col-lg-6.image-wrapper');
+
+    if (leftCol && rightCol) {
+        const newLeftClass = data.position === 'right' ? 'order-lg-1' : 'order-lg-2';
+        const newRightClass = data.position === 'right' ? 'order-lg-2' : 'order-lg-1';
+
+        // Remove existing order-lg-* classes
+        leftCol.classList.remove('order-lg-1', 'order-lg-2');
+        rightCol.classList.remove('order-lg-1', 'order-lg-2');
+
+        // Add updated classes
+        leftCol.classList.add(newLeftClass);
+        rightCol.classList.add(newRightClass);
+    }
 }

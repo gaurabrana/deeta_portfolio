@@ -14,18 +14,42 @@ function handleMediaUpload()
         // Validate and process input
         $input = validateAndProcessInput($_POST, $_FILES);
 
-        // Validate the uploaded file
-        $fileInfo = validateUploadedFile($input['file']);
-
         // Handle page and section (create if needed)
         $pageId = handlePage($input['page_slug']);
         $sectionId = handleSection($input['section_slug'], $input['section_id'], $pageId);
 
-        // Process the file upload
-        $uploadResult = processFileUpload($input['file'], $fileInfo['media_type'], $sectionId, $input);
+        // Check if file uploaded
+        $fileUploaded = ($input['file'] && $input['file']['error'] === UPLOAD_ERR_OK);
 
-        // Prepare success response
-        $output = prepareSuccessResponse($output, $uploadResult, $input);
+        if (!$fileUploaded) {
+            
+            // No file uploaded: check if upload record exists
+            $existingUpload = getExistingUpload($sectionId);
+            if (!$existingUpload) {
+                throw new Exception('No file uploaded and no existing upload found for this section.');
+            }
+
+            // Update caption/position only, no file upload
+            updateUpload($sectionId, $existingUpload['path'], $input['caption'], $existingUpload['media_type'], $input['position']);
+
+            // Prepare success response with existing file info
+            $output = prepareSuccessResponse($output, [
+                'filename' => $existingUpload['path'],
+                'media_type' => $existingUpload['media_type'],
+                'unlinkSuccess' => null,
+                'existingPath' => null,
+            ], $input);
+
+        } else {
+            // File uploaded: validate file
+            $fileInfo = validateUploadedFile($input['file']);
+
+            // Process the file upload
+            $uploadResult = processFileUpload($input['file'], $fileInfo['media_type'], $sectionId, $input);
+
+            // Prepare success response
+            $output = prepareSuccessResponse($output, $uploadResult, $input);
+        }
 
     } catch (Exception $e) {
         $output['message'] = $e->getMessage();
@@ -58,10 +82,6 @@ function validateAndProcessInput($postData, $fileData)
 
     if (empty($input['page_slug']) || empty($input['section_slug'])) {
         throw new Exception('Missing page or section.');
-    }
-
-    if (!$input['file'] || $input['file']['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('File upload failed.');
     }
 
     return $input;
@@ -199,7 +219,7 @@ function getExistingUpload($sectionId)
 {
     global $conn;
 
-    $stmt = $conn->prepare("SELECT id, path FROM uploads WHERE section_id = ?");
+    $stmt = $conn->prepare("SELECT id, path, media_type FROM uploads WHERE section_id = ?");
     $stmt->bind_param("i", $sectionId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -236,11 +256,12 @@ function insertUpload($sectionId, $filename, $caption, $mediaType, $position)
 function prepareSuccessResponse($output, $uploadResult, $input)
 {
     $output['success'] = true;
-    $output['message'] = ucfirst($uploadResult['media_type']) . ' uploaded successfully.';
+    $output['message'] = 'Section updated successfully.';
     $output['path'] = $uploadResult['filename'];
     $output['media_type'] = $uploadResult['media_type'];
     $output['caption'] = htmlspecialchars($input['caption']);
     $output['position'] = $input['position'];
+    $output['section_id'] = $input['section_id'];
     $output['section_slug'] = $input['section_slug'];
 
     // Handle file deletion status
@@ -255,11 +276,6 @@ function prepareSuccessResponse($output, $uploadResult, $input)
             $output['file_missing'] = 'Existing file could not be found to update.';
         }
     }
-
-    // Render HTML output
-    ob_start();
-    renderSingleMediaItem($output);
-    $output['html'] = ob_get_clean();
 
     return $output;
 }
