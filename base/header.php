@@ -175,7 +175,7 @@ include('database/connect.php');
                     <li class="nav-item mx-2 <?php echo $current_page == 'research.php' ? 'active-link' : ''; ?>">
                         <a class="nav-link" href="research.php">Research</a>
                     </li>
-                    <li class="nav-item mx-2 <?php echo $current_page == 'research.php' ? 'active-link' : ''; ?>">
+                    <li class="nav-item mx-2 <?php echo $current_page == 'moment_of_truth.php' ? 'active-link' : ''; ?>">
                         <a class="nav-link" href="moment_of_truth.php">Moment Of Truth</a>
                     </li>
                     <li

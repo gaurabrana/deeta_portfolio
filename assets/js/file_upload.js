@@ -13,7 +13,6 @@ $(document).ready(function () {
             contentType: 'application/json',
             data: JSON.stringify({ section_id: sectionId }),
             success: function (response) {
-                console.log(response); // already a JS object
                 if (response.success) {
                     const sectionEl = document.getElementById('media-preview-container-' + sectionId); // ensure this ID exists
                     const sectionContainerForm = document.getElementById('upload-form-container-' + sectionId); // ensure this ID exists
@@ -344,7 +343,9 @@ function updateMediaSection(data) {
         return;
     }
 
-    console.log("Updating section", sectionEl);
+    if (sectionEl && sectionEl.classList.contains('hide-empty-asset')) {
+        sectionEl.classList.remove('hide-empty-asset');
+    }
 
     // 1. Update <p> tag content (caption)
     const pTag = sectionEl.querySelector('p');
@@ -352,14 +353,19 @@ function updateMediaSection(data) {
         pTag.textContent = data.caption || '';
     }
 
-    // 2. Update <img> or <video> src
-    const mediaTag = sectionEl.querySelector('img, video');
-    if (mediaTag) {
-        mediaTag.setAttribute('src', 'assets/images/uploads/' + data.path);
+    // Find both img and video
+    const imgEl = sectionEl.querySelector('img');
+    const videoEl = sectionEl.querySelector('video');
 
-        if (data.media_type === 'video') {
-            mediaTag.load();
-        }
+    if (data.media_type === 'image' && imgEl) {
+        imgEl.setAttribute('src', 'assets/images/uploads/' + data.path);
+        imgEl.classList.remove('hide-empty-asset');
+        videoEl.classList.add('hide-empty-asset');
+    } else if (data.media_type === 'video' && videoEl) {
+        videoEl.setAttribute('src', 'assets/images/uploads/' + data.path);
+        videoEl.classList.remove('hide-empty-asset');
+        imgEl.classList.add('hide-empty-asset');
+        videoEl.load(); // reloads video with new source
     }
 
     // 3. Update Bootstrap order classes

@@ -154,10 +154,23 @@ HTML;
         $inversePosition = ($existingUpload['position'] === 'right') ? 'order-lg-2' : 'order-lg-1';
 
         if ($existingUpload['media_type'] === 'image') {
-            $mediaHtml = "<img src='assets/images/uploads/{$mediaPath}' alt='Media' class='img-fluid rounded shadow'>";
+            $imgSrc = "assets/images/uploads/{$mediaPath}";
+            $videoSrc = ''; // empty
+            $imgClass = 'img-fluid rounded shadow';
+            $videoClass = 'img-fluid rounded shadow hide-empty-asset';
         } elseif ($existingUpload['media_type'] === 'video') {
-            $mediaHtml = "<video src='assets/images/uploads/{$mediaPath}' controls class='img-fluid rounded shadow'></video>";
+            $imgSrc = ''; // empty
+            $videoSrc = "assets/images/uploads/{$mediaPath}";
+            $imgClass = 'img-fluid rounded shadow hide-empty-asset';
+            $videoClass = 'img-fluid rounded shadow';
         }
+
+        $mediaHtml = "
+    <img src='{$imgSrc}' alt='Media' class='{$imgClass}' />
+    <video src='{$videoSrc}' controls class='{$videoClass}'></video>
+";
+
+
 
         echo <<<HTML
     <div id="media-preview-container-$sectionId">
@@ -167,6 +180,20 @@ HTML;
             </div>
             <div class="col-lg-6 {$inversePosition} image-wrapper" data-aos="zoom-out-down">
                 {$mediaHtml}
+            </div>
+        </div>
+    </div>
+HTML;
+    } else {
+        $mediaHtml = "<img src='' alt='Media' class='img-fluid rounded shadow hide-empty-asset' /><video src='' controls class='img-fluid rounded shadow hide-empty-asset'></video>";
+        echo <<<HTML
+    <div id="media-preview-container-$sectionId">
+        <div class="row justify-content-center align-items-center mb-4">
+            <div class="col-lg-6 col-md-12" data-aos="fade-left">
+                <p class="paragraph text-justify mb-3"></p>
+            </div>
+            <div class="col-lg-6 image-wrapper" data-aos="zoom-out-down">   
+                $mediaHtml             
             </div>
         </div>
     </div>

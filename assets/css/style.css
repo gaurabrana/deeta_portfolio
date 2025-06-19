@@ -1416,3 +1416,7 @@ section {
 .visible-delete-button {
   display: inline-block;
 }
+
+.hide-empty-asset {
+  display: none;
+}
