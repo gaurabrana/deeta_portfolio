@@ -16,6 +16,7 @@ $section_slug = $_POST['section_slug'] ?? '';
 $caption = trim($_POST['caption'] ?? '');
 $file = $_FILES['media'] ?? null;
 $position = $_POST['position'] ?? 'left'; // default to 'left'
+$section_id = $_POST['section_id'] ?? '';
 
 // Check if required fields are present
 if (!$page_slug || !$section_slug) {
@@ -84,25 +85,28 @@ if (!$page) {
     $page_id = $page['id'];
 }
 
-// === Auto-create Section if missing ===
-$stmt = $conn->prepare("SELECT id FROM sections WHERE slug = ? AND page_id = ?");
-$stmt->bind_param("si", $section_slug, $page_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$section = $result->fetch_assoc();
+// if section is not present
+if ($section_id == '') {
+    // === Auto-create Section if missing ===
+    $stmt = $conn->prepare("SELECT id FROM sections WHERE slug = ? AND page_id = ?");
+    $stmt->bind_param("si", $section_slug, $page_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $section = $result->fetch_assoc();
 
-if (!$section) {
-    $insertSection = $conn->prepare("INSERT INTO sections (slug, title, page_id) VALUES (?, ?, ?)");
-    $sectionName = ucfirst(str_replace('-', ' ', $section_slug));
-    $insertSection->bind_param("ssi", $section_slug, $sectionName, $page_id);
-    if (!$insertSection->execute()) {
-        $output['message'] = 'Failed to create section.';
-        echo json_encode($output);
-        exit;
+    if (!$section) {
+        $insertSection = $conn->prepare("INSERT INTO sections (slug, title, page_id) VALUES (?, ?, ?)");
+        $sectionName = ucfirst(str_replace('-', ' ', $section_slug));
+        $insertSection->bind_param("ssi", $section_slug, $sectionName, $page_id);
+        if (!$insertSection->execute()) {
+            $output['message'] = 'Failed to create section.';
+            echo json_encode($output);
+            exit;
+        }
+        $section_id = $conn->insert_id;
+    } else {
+        $section_id = $section['id'];
     }
-    $section_id = $conn->insert_id;
-} else {
-    $section_id = $section['id'];
 }
 
 // === File Upload Handling ===
@@ -123,14 +127,49 @@ if (!move_uploaded_file($file["tmp_name"], $targetFile)) {
     exit;
 }
 
-// === Database Insert for Uploads ===
-$stmt = $conn->prepare("
+// check if upload present already for given section, if yes, update. else create new record
+
+
+$stmt = $conn->prepare("select id, path from uploads where section_id = ?");
+$stmt->bind_param("i", $section_id);
+$stmt->execute();
+$uploadResult = $stmt->get_result();
+$sectionResult = $uploadResult->fetch_assoc();
+// present already, update
+if ($sectionResult) {
+    // === Database update for Uploads ===
+    $existingPath = $uploadDir . $sectionResult['path'];
+
+    $stmt = $conn->prepare("UPDATE uploads set path = ?, caption = ?, media_type = ?, position = ?");
+    $stmt->bind_param("ssss", $filename, $caption, $media_type, $position);
+} else {
+    // === Database Insert for Uploads ===
+    $stmt = $conn->prepare("
     INSERT INTO uploads (section_id, path, caption, media_type, position)
     VALUES (?, ?, ?, ?, ?)
 ");
-$stmt->bind_param("issss", $section_id, $filename, $caption, $media_type, $position);
+    $stmt->bind_param("issss", $section_id, $filename, $caption, $media_type, $position);
+}
 
 if ($stmt->execute()) {
+    // on success, delete image/video from folder
+    if (isset($existingPath)) {
+        // Delete file from disk
+        $unlinkSuccess = null; // initialize
+
+        if (file_exists($existingPath)) {
+            $unlinkSuccess = unlink($existingPath);
+        }
+    }
+    if ($unlinkSuccess === false) {
+        $output['file_delete_error'] = 'Existing file exists but could not be deleted.';
+    } elseif ($unlinkSuccess === true) {
+        $output['file_deleted'] = true;
+    } elseif (file_exists($existingPath)) {
+        $output['file_exists_but_not_deleted'] = true;
+    } else {
+        $output['file_missing'] = 'Existing file could not be found to update.';
+    }
     $output['success'] = true;
     $output['message'] = ucfirst($media_type) . ' uploaded successfully.';
     $output['path'] = $filename;
