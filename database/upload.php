@@ -1,194 +1,265 @@
 <?php
-require 'connect.php'; // Connect to the database using $conn
+require 'connect.php';
 include '../helper.php';
 header('Content-Type: application/json');
+// Execute the main function
+handleMediaUpload();
 
-// Initialize the output array for JSON response
-$output = [
-    'success' => false,
-    'message' => '',
-];
-// === Input Collection and Basic Validation ===
+// Main function to handle the upload process
+function handleMediaUpload()
+{
+    $output = initializeOutput();
 
-// Retrieve POST data safely
-$page_slug = $_POST['page_slug'] ?? '';
-$section_slug = $_POST['section_slug'] ?? '';
-$caption = trim($_POST['caption'] ?? '');
-$file = $_FILES['media'] ?? null;
-$position = $_POST['position'] ?? 'left'; // default to 'left'
-$section_id = $_POST['section_id'] ?? '';
+    try {
+        // Validate and process input
+        $input = validateAndProcessInput($_POST, $_FILES);
 
-// Check if required fields are present
-if (!$page_slug || !$section_slug) {
-    $output['message'] = 'Missing page or section.';
-    echo json_encode($output);
-    exit;
-}
+        // Validate the uploaded file
+        $fileInfo = validateUploadedFile($input['file']);
 
-// Check if a file was uploaded and has no error
-if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
-    $output['message'] = 'File upload failed.';
-    echo json_encode($output);
-    exit;
-}
+        // Handle page and section (create if needed)
+        $pageId = handlePage($input['page_slug']);
+        $sectionId = handleSection($input['section_slug'], $input['section_id'], $pageId);
 
-// === File Validation ===
+        // Process the file upload
+        $uploadResult = processFileUpload($input['file'], $fileInfo['media_type'], $sectionId, $input);
 
-// Define max file size (50MB)
-$maxSize = 50 * 1024 * 1024;
-if ($file['size'] > $maxSize) {
-    $output['message'] = 'File too large. Max 50MB allowed.';
-    echo json_encode($output);
-    exit;
-}
+        // Prepare success response
+        $output = prepareSuccessResponse($output, $uploadResult, $input);
 
-// Get MIME type of the uploaded file
-$finfo = finfo_open(FILEINFO_MIME_TYPE);
-$mime = finfo_file($finfo, $file['tmp_name']);
-finfo_close($finfo);
-
-// Define supported MIME types
-$allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-$allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
-
-$media_type = ''; // Will hold either 'image' or 'video'
-
-// Identify media type based on MIME
-if (in_array($mime, $allowedImageTypes)) {
-    $media_type = 'image';
-} elseif (in_array($mime, $allowedVideoTypes)) {
-    $media_type = 'video';
-} else {
-    $output['message'] = 'Unsupported file type.';
-    echo json_encode($output);
-    exit;
-}
-
-// === Auto-create Page if missing ===
-$stmt = $conn->prepare("SELECT id FROM pages WHERE slug = ?");
-$stmt->bind_param("s", $page_slug);
-$stmt->execute();
-$result = $stmt->get_result();
-$page = $result->fetch_assoc();
-
-if (!$page) {
-    $insertPage = $conn->prepare("INSERT INTO pages (slug, title) VALUES (?, ?)");
-    $pageName = ucfirst(str_replace('-', ' ', $page_slug)); // generate friendly name
-    $insertPage->bind_param("ss", $page_slug, $pageName);
-    if (!$insertPage->execute()) {
-        $output['message'] = 'Failed to create page.';
-        echo json_encode($output);
-        exit;
+    } catch (Exception $e) {
+        $output['message'] = $e->getMessage();
     }
-    $page_id = $conn->insert_id;
-} else {
-    $page_id = $page['id'];
+
+    echo json_encode($output);
+    exit;
 }
 
-// if section is not present
-if ($section_id == '') {
-    // === Auto-create Section if missing ===
+// Initialize the output array
+function initializeOutput()
+{
+    return [
+        'success' => false,
+        'message' => '',
+    ];
+}
+
+// Validate and process input data
+function validateAndProcessInput($postData, $fileData)
+{
+    $input = [
+        'page_slug' => $postData['page_slug'] ?? '',
+        'section_slug' => $postData['section_slug'] ?? '',
+        'caption' => trim($postData['caption'] ?? ''),
+        'file' => $fileData['media'] ?? null,
+        'position' => $postData['position'] ?? 'left',
+        'section_id' => $postData['section_id'] ?? '',
+    ];
+
+    if (empty($input['page_slug']) || empty($input['section_slug'])) {
+        throw new Exception('Missing page or section.');
+    }
+
+    if (!$input['file'] || $input['file']['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('File upload failed.');
+    }
+
+    return $input;
+}
+
+// Validate the uploaded file
+function validateUploadedFile($file)
+{
+    $maxSize = 50 * 1024 * 1024; // 50MB
+    if ($file['size'] > $maxSize) {
+        throw new Exception('File too large. Max 50MB allowed.');
+    }
+
+    $allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    $allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+
+    if (in_array($mime, $allowedImageTypes)) {
+        return ['media_type' => 'image', 'mime' => $mime];
+    } elseif (in_array($mime, $allowedVideoTypes)) {
+        return ['media_type' => 'video', 'mime' => $mime];
+    }
+
+    throw new Exception('Unsupported file type.');
+}
+
+// Handle page (create if doesn't exist)
+function handlePage($pageSlug)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("SELECT id FROM pages WHERE slug = ?");
+    $stmt->bind_param("s", $pageSlug);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $page = $result->fetch_assoc();
+
+    if ($page) {
+        return $page['id'];
+    }
+
+    // Create new page
+    $insertPage = $conn->prepare("INSERT INTO pages (slug, title) VALUES (?, ?)");
+    $pageName = ucfirst(str_replace('-', ' ', $pageSlug));
+    $insertPage->bind_param("ss", $pageSlug, $pageName);
+
+    if (!$insertPage->execute()) {
+        throw new Exception('Failed to create page.');
+    }
+
+    return $conn->insert_id;
+}
+
+// Handle section (create if doesn't exist)
+function handleSection($sectionSlug, $sectionId, $pageId)
+{
+    global $conn;
+
+    if (!empty($sectionId)) {
+        return $sectionId;
+    }
+
     $stmt = $conn->prepare("SELECT id FROM sections WHERE slug = ? AND page_id = ?");
-    $stmt->bind_param("si", $section_slug, $page_id);
+    $stmt->bind_param("si", $sectionSlug, $pageId);
     $stmt->execute();
     $result = $stmt->get_result();
     $section = $result->fetch_assoc();
 
-    if (!$section) {
-        $insertSection = $conn->prepare("INSERT INTO sections (slug, title, page_id) VALUES (?, ?, ?)");
-        $sectionName = ucfirst(str_replace('-', ' ', $section_slug));
-        $insertSection->bind_param("ssi", $section_slug, $sectionName, $page_id);
-        if (!$insertSection->execute()) {
-            $output['message'] = 'Failed to create section.';
-            echo json_encode($output);
-            exit;
-        }
-        $section_id = $conn->insert_id;
+    if ($section) {
+        return $section['id'];
+    }
+
+    // Create new section
+    $insertSection = $conn->prepare("INSERT INTO sections (slug, title, page_id) VALUES (?, ?, ?)");
+    $sectionName = ucfirst(str_replace('-', ' ', $sectionSlug));
+    $insertSection->bind_param("ssi", $sectionSlug, $sectionName, $pageId);
+
+    if (!$insertSection->execute()) {
+        throw new Exception('Failed to create section.');
+    }
+
+    return $conn->insert_id;
+}
+
+// Process file upload and database operations
+function processFileUpload($file, $mediaType, $sectionId, $input)
+{
+    global $conn;
+
+    $uploadDir = "../assets/images/uploads/";
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    // Generate unique filename
+    $ext = pathinfo($file["name"], PATHINFO_EXTENSION);
+    $filename = time() . "_" . bin2hex(random_bytes(4)) . "." . $ext;
+    $targetFile = $uploadDir . $filename;
+
+    // Move uploaded file
+    if (!move_uploaded_file($file["tmp_name"], $targetFile)) {
+        throw new Exception('Error saving file.');
+    }
+
+    // Check for existing upload
+    $existingUpload = getExistingUpload($sectionId);
+    $existingPath = $existingUpload ? $uploadDir . $existingUpload['path'] : null;
+
+    // Update or insert record
+    if ($existingUpload) {
+        updateUpload($sectionId, $filename, $input['caption'], $mediaType, $input['position']);
     } else {
-        $section_id = $section['id'];
+        insertUpload($sectionId, $filename, $input['caption'], $mediaType, $input['position']);
+    }
+
+    // Clean up old file if it exists
+    $unlinkSuccess = null;
+    if ($existingPath && file_exists($existingPath)) {
+        $unlinkSuccess = unlink($existingPath);
+    }
+
+    return [
+        'filename' => $filename,
+        'media_type' => $mediaType,
+        'unlinkSuccess' => $unlinkSuccess,
+        'existingPath' => $existingPath,
+    ];
+}
+
+// Get existing upload for section
+function getExistingUpload($sectionId)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("SELECT id, path FROM uploads WHERE section_id = ?");
+    $stmt->bind_param("i", $sectionId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
+}
+
+// Update existing upload record
+function updateUpload($sectionId, $filename, $caption, $mediaType, $position)
+{
+    global $conn;
+
+    $stmt = $conn->prepare("UPDATE uploads SET path = ?, caption = ?, media_type = ?, position = ? WHERE section_id = ?");
+    $stmt->bind_param("ssssi", $filename, $caption, $mediaType, $position, $sectionId);
+
+    if (!$stmt->execute()) {
+        throw new Exception('Database update error.');
     }
 }
 
-// === File Upload Handling ===
-$uploadDir = "../assets/images/uploads/";
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
-}
+// Insert new upload record
+function insertUpload($sectionId, $filename, $caption, $mediaType, $position)
+{
+    global $conn;
 
-// Generate a unique file name for the upload
-$ext = pathinfo($file["name"], PATHINFO_EXTENSION);
-$filename = time() . "_" . bin2hex(random_bytes(4)) . "." . $ext;
-$targetFile = $uploadDir . $filename;
+    $stmt = $conn->prepare("INSERT INTO uploads (section_id, path, caption, media_type, position) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("issss", $sectionId, $filename, $caption, $mediaType, $position);
 
-// Move the uploaded file to the target directory
-if (!move_uploaded_file($file["tmp_name"], $targetFile)) {
-    $output['message'] = 'Error saving file.';
-    echo json_encode($output);
-    exit;
-}
-
-// check if upload present already for given section, if yes, update. else create new record
-
-
-$stmt = $conn->prepare("select id, path from uploads where section_id = ?");
-$stmt->bind_param("i", $section_id);
-$stmt->execute();
-$uploadResult = $stmt->get_result();
-$sectionResult = $uploadResult->fetch_assoc();
-// present already, update
-if ($sectionResult) {
-    // === Database update for Uploads ===
-    $existingPath = $uploadDir . $sectionResult['path'];
-
-    $stmt = $conn->prepare("UPDATE uploads set path = ?, caption = ?, media_type = ?, position = ?");
-    $stmt->bind_param("ssss", $filename, $caption, $media_type, $position);
-} else {
-    // === Database Insert for Uploads ===
-    $stmt = $conn->prepare("
-    INSERT INTO uploads (section_id, path, caption, media_type, position)
-    VALUES (?, ?, ?, ?, ?)
-");
-    $stmt->bind_param("issss", $section_id, $filename, $caption, $media_type, $position);
-}
-
-if ($stmt->execute()) {
-    // on success, delete image/video from folder
-    if (isset($existingPath)) {
-        // Delete file from disk
-        $unlinkSuccess = null; // initialize
-
-        if (file_exists($existingPath)) {
-            $unlinkSuccess = unlink($existingPath);
-        }
+    if (!$stmt->execute()) {
+        throw new Exception('Database insert error.');
     }
-    if ($unlinkSuccess === false) {
-        $output['file_delete_error'] = 'Existing file exists but could not be deleted.';
-    } elseif ($unlinkSuccess === true) {
-        $output['file_deleted'] = true;
-    } elseif (file_exists($existingPath)) {
-        $output['file_exists_but_not_deleted'] = true;
-    } else {
-        $output['file_missing'] = 'Existing file could not be found to update.';
-    }
+}
+
+// Prepare success response
+function prepareSuccessResponse($output, $uploadResult, $input)
+{
     $output['success'] = true;
-    $output['message'] = ucfirst($media_type) . ' uploaded successfully.';
-    $output['path'] = $filename;
-    $output['media_type'] = $media_type;
-    $output['caption'] = htmlspecialchars($caption);
-    $output['position'] = $position;
-    $output['section_slug'] = $section_slug;
-    // Buffer the HTML output of your render function
+    $output['message'] = ucfirst($uploadResult['media_type']) . ' uploaded successfully.';
+    $output['path'] = $uploadResult['filename'];
+    $output['media_type'] = $uploadResult['media_type'];
+    $output['caption'] = htmlspecialchars($input['caption']);
+    $output['position'] = $input['position'];
+    $output['section_slug'] = $input['section_slug'];
+
+    // Handle file deletion status
+    if (isset($uploadResult['unlinkSuccess'])) {
+        if ($uploadResult['unlinkSuccess'] === false) {
+            $output['file_delete_error'] = 'Existing file exists but could not be deleted.';
+        } elseif ($uploadResult['unlinkSuccess'] === true) {
+            $output['file_deleted'] = true;
+        } elseif (file_exists($uploadResult['existingPath'])) {
+            $output['file_exists_but_not_deleted'] = true;
+        } else {
+            $output['file_missing'] = 'Existing file could not be found to update.';
+        }
+    }
+
+    // Render HTML output
     ob_start();
     renderSingleMediaItem($output);
-    $html = ob_get_clean();
+    $output['html'] = ob_get_clean();
 
-    // Add the rendered HTML to the response
-    $output['html'] = $html;
-} else {
-    $output['message'] = 'Database error.';
+    return $output;
 }
-
-// Return JSON response
-echo json_encode($output);
-exit;
-?>

@@ -38,18 +38,19 @@ function renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sect
             <input type="hidden" name="page_slug" value="$pageSlug">
             <input type="hidden" name="section_slug" value="$sectionSlug">
             <input type="hidden" name="section_id" value="$sectionId">
+            <input type="hidden" name="preview_id" value="$previewId">
             <input type="hidden" id="upload-form-container-$sectionId" name="form_id" value="$formId">
 
             <!-- Caption -->
             <div class="col-12">
-                <label for="$captionId" class="form-label">Caption ($sectionLabel)</label>
-                <textarea name="caption" id="$captionId" class="form-control" rows="2" placeholder="Write a caption...">$existingCaption</textarea>
+                <label for="$captionId" class="form-label">Text</label>
+                <textarea name="caption" id="$captionId" class="form-control editable-field" rows="2" placeholder="Write a caption...">$existingCaption</textarea>
             </div>
 
             <!-- Media Position -->
             <div class="col-md-6">
                 <label for="$positionId" class="form-label">Media Position</label>
-                <select name="position" id="$positionId" class="form-select">
+                <select name="position" id="$positionId" class="form-select editable-field">
                     <option value="left" $leftSelected>Left</option>
                     <option value="right" $rightSelected>Right</option>
                 </select>
@@ -59,13 +60,16 @@ function renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sect
             <div class="col-md-6">
                 <label for="$fileInputId" class="form-label">Image or Video</label>
                 <input type="file" name="media" id="$fileInputId"
-                       class="form-control media-input"
+                       class="form-control media-input editable-field"
                        data-form="$formId"
                        data-preview="$previewId"
                        data-status="$statusId"
                        accept="image/*,video/*">
                 <small class="form-text text-muted">Supported: JPG, PNG, WEBP, GIF, MP4, WebM, MOV (max 50MB)</small>
-                <div id="$previewId" class="mt-3">$previewHtml</div>
+                <div id="$previewId" class="mt-3">
+                    <h6>Existing File :</h6>
+                    $previewHtml
+                </div>
             </div>
 
             <!-- Submit and Delete Buttons -->
@@ -74,11 +78,14 @@ function renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sect
 HTML;
 
     if ($isEdit) {
-        echo <<<HTML
-                <button type="button" class="btn btn-danger ms-2 delete-media-btn" data-upload-id="$sectionId">Delete</button>
+        $delete_button_class = "visible-delete-button";
+    } else {
+        $delete_button_class = "hidden-delete-button";
+    }
+    echo <<<HTML
+                <button type="button" class="btn btn-danger ms-2 delete-media-btn $delete_button_class" data-upload-id="$sectionId">Delete</button>
                 <div class="mt-2" id="delete-info-$sectionId"></div>
 HTML;
-    }
 
     echo <<<HTML
                 <div class="mt-2" id="$statusId"></div>
@@ -99,7 +106,7 @@ function renderMediaSection($conn, $pageSlug, $sectionId, $sectionSlug, $section
     $stmt->execute();
     $result = $stmt->get_result();
     $uploads = $result->fetch_all(MYSQLI_ASSOC);  // fetch all rows at once
-    $existingUpload = count($uploads) > 0 ? $uploads[0] : null;    
+    $existingUpload = count($uploads) > 0 ? $uploads[0] : null;
 
 
     echo <<<HTML
