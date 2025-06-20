@@ -2,18 +2,18 @@
 header('Content-Type: application/json');
 
 $data = json_decode(file_get_contents('php://input'), true);
-if (!isset($data['section_id']) || !is_numeric($data['section_id'])) {
-    echo json_encode(['success' => false, 'error' => 'Invalid section ID']);
+if (!isset($data['upload_id']) || !is_numeric($data['upload_id'])) {
+    echo json_encode(['success' => false, 'error' => 'Invalid upload ID']);
     exit;
 }
 
-$sectionId = (int) $data['section_id'];
+$uploadId = (int) $data['upload_id'];
 
 include 'connect.php';
 
 // Fetch path
-$stmt = $conn->prepare("SELECT path FROM uploads WHERE section_id = ? LIMIT 1");
-$stmt->execute([$sectionId]);
+$stmt = $conn->prepare("SELECT path FROM uploads WHERE id = ? LIMIT 1");
+$stmt->execute([$uploadId]);
 $result = $stmt->get_result();
 $upload = $result->fetch_assoc();
 
@@ -25,8 +25,11 @@ if (!$upload) {
 $filePath = __DIR__ . '/../assets/images/uploads/' . $upload['path'];
 
 // Delete DB record
-$stmt = $conn->prepare("DELETE FROM uploads WHERE section_id = ?");
-$success = $stmt->execute([$sectionId]);
+$stmt = $conn->prepare("DELETE FROM section_upload WHERE upload_id = ?");
+$success = $stmt->execute([$uploadId]);
+
+$stmt = $conn->prepare("DELETE FROM uploads WHERE id = ?");
+$success = $stmt->execute([$uploadId]);
 
 // Delete file from disk
 $unlinkSuccess = null; // initialize

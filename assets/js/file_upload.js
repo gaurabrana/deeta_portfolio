@@ -1,9 +1,9 @@
 $(document).ready(function () {
     $('.delete-media-btn').on('click', function () {
-        const sectionId = $(this).data('upload-id');
+        const uploadId = $(this).data('upload-id');
         const $button = $(this);
-        const statusBox = document.getElementById("delete-info-" + sectionId);
-        if (!sectionId) return;
+        const statusBox = document.getElementById("delete-info-" + uploadId);
+        if (!uploadId) return;
 
         if (!confirm('Are you sure you want to delete this media?')) return;
 
@@ -11,23 +11,11 @@ $(document).ready(function () {
             url: './database/delete_upload.php',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ section_id: sectionId }),
+            data: JSON.stringify({ upload_id: uploadId }),
             success: function (response) {
                 if (response.success) {
-                    const sectionEl = document.getElementById('media-preview-container-' + sectionId); // ensure this ID exists
-                    const sectionContainerForm = document.getElementById('upload-form-container-' + sectionId); // ensure this ID exists
-                    // clear file input preview
-                    clearPreviewElement(sectionContainerForm.value);
-                    // clear section preview
-                    if (sectionEl) {
-                        sectionEl.innerHTML = '';
-                    }
-                    //
-                    // Hide button
-                    $button.removeClass('visible-delete-button')
-                        .addClass('hidden-delete-button');
-                    // clear fields
-                    clearEditableFields(sectionContainerForm.value);
+                    // remove container
+                    $('#media-preview-container-' + uploadId).remove();
                     if (response.file_deleted) {
                         showTemporaryStatus(
                             statusBox,
@@ -139,9 +127,16 @@ $(document).ready(function () {
                             deleteButton.classList.remove('hidden-delete-button');
                         }
 
-                        // for given form id, clear input file only
-                        // because position and text value are already in ui
-                        clearMediaFileInput(formId);
+                        if (data.new_upload) {
+                            // clear form
+                            clearEditableFields(formId);
+                        }
+                        else {
+                            // clear existin data file field only
+                            // for given form id, clear input file only
+                            // because position and text value are already in ui
+                            clearMediaFileInput(formId);
+                        }
 
                         // Handle the media display based on scenario
                         if (data.file_deleted) {
@@ -152,8 +147,22 @@ $(document).ready(function () {
                             console.warn('Previous file could not be deleted:', data.file_delete_error);
                         }
 
-                        // Update the media display
-                        updateMediaSection(data);
+                        if (data.new_upload) {
+                            // Append the new media HTML
+                            $(data.html).appendTo('#section-media-container-' + data.section_id);
+
+                            // Initialize AOS just for new elements
+                            AOS.init({
+                                startEvent: 'load',
+                                disable: false,
+                                once: false,
+                                mirror: false,
+                            }, true); // The 'true' parameter forces reinitialization                            
+                        }
+                        else {
+                            // Update the media display
+                            updateMediaSection(data);
+                        }
 
 
                     } else {
@@ -336,10 +345,10 @@ function showTemporaryStatus(element, message, options = {}) {
 }
 
 function updateMediaSection(data) {
-    const sectionEl = document.getElementById('media-preview-container-' + data.section_id);
+    const sectionEl = document.getElementById('media-preview-container-' + data.upload_id);
 
     if (!sectionEl) {
-        console.warn(`Section with id media-preview-container-${data.section_id} not found.`);
+        console.warn(`Section upload with id media-preview-container-${data.upload_id} not found.`);
         return;
     }
 

@@ -1,21 +1,22 @@
 <?php
 
-function renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sectionLabel, $existingUpload = null)
+function renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpload = null)
 {
     $existing = $existingUpload ?? [];
 
     $formId = "mediaUploadForm-{$pageSlug}-{$sectionSlug}";
     $captionId = "caption-{$pageSlug}-{$sectionSlug}";
     $fileInputId = "media-{$pageSlug}-{$sectionSlug}";
-    $previewId = "media-preview-{$pageSlug}-{$sectionSlug}";
-    $statusId = "upload-status-{$pageSlug}-{$sectionSlug}";
+    $previewId = "media-preview-{$pageSlug}-{$sectionSlug}";    
     $positionId = "media-position-{$pageSlug}-{$sectionSlug}";
 
     $existingCaption = htmlspecialchars($existing['caption'] ?? '');
     $existingPosition = $existing['position'] ?? '';
     $existingMediaPath = $existing['path'] ?? '';
     $existingMediaType = $existing['media_type'] ?? '';
+    $existingId = $existing['upload_id'] ?? '';
     $isEdit = !empty($existing);
+    $statusId = $isEdit ? "upload-status-{$pageSlug}-{$sectionSlug}-{$existingId}" : "upload-status-{$pageSlug}-{$sectionSlug}";
 
     $leftSelected = ($existingPosition === 'left') ? 'selected' : '';
     $rightSelected = ($existingPosition === 'right') ? 'selected' : '';
@@ -39,6 +40,7 @@ function renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sect
             <input type="hidden" name="section_slug" value="$sectionSlug">
             <input type="hidden" name="section_id" value="$sectionId">
             <input type="hidden" name="preview_id" value="$previewId">
+            <input type="hidden" name="upload_id" value="$existingId">
             <input type="hidden" id="upload-form-container-$sectionId" name="form_id" value="$formId">
 
             <!-- Caption -->
@@ -88,8 +90,8 @@ HTML;
         $delete_button_class = "hidden-delete-button";
     }
     echo <<<HTML
-                <button type="button" class="btn btn-danger ms-2 delete-media-btn $delete_button_class" data-upload-id="$sectionId">Delete</button>
-                <div class="mt-2" id="delete-info-$sectionId"></div>
+                <button type="button" class="btn btn-danger ms-2 delete-media-btn $delete_button_class" data-upload-id="$existingId">Delete</button>
+                <div class="mt-2" id="delete-info-$existingId"></div>
 HTML;
 
     echo <<<HTML
@@ -106,13 +108,18 @@ function renderMediaSection($conn, $pageSlug, $sectionId, $sectionSlug, $section
     $collapseId = "collapse-" . $sectionSlug;
     $headingId = "heading-" . $sectionSlug;
     // === FETCH MEDIA CONTENT FROM uploads TABLE ===
-    $stmt = $conn->prepare("SELECT path, caption, media_type, position FROM uploads WHERE section_id = ? ORDER BY id DESC LIMIT 1");
+    $stmt = $conn->prepare("
+    SELECT u.path, u.caption, u.media_type, u.position, su.upload_id 
+    FROM section_upload su
+    JOIN uploads u ON u.id = su.upload_id
+    WHERE su.section_id = ?
+    ORDER BY su.id DESC    
+");
     $stmt->bind_param("i", $sectionId);
     $stmt->execute();
     $result = $stmt->get_result();
-    $uploads = $result->fetch_all(MYSQLI_ASSOC);  // fetch all rows at once
-    $existingUpload = count($uploads) > 0 ? $uploads[0] : null;
-
+    $uploads = $result->fetch_all(MYSQLI_ASSOC);  // fetch all rows at once    
+    $isAdminEditing = true; // this will flag whether to show editing options or not
 
     echo <<<HTML
     <section id="{$sectionSlug}" class="py-5">
@@ -120,135 +127,107 @@ function renderMediaSection($conn, $pageSlug, $sectionId, $sectionSlug, $section
             <p class="heading-3 text-center mb-5" data-aos="fade-up" data-aos-easing="linear" data-aos-duration="700">
                 {$sectionTitle}
             </p>
-            <div class="row mb-4">
-                <div class="col-md-12">
-                    <div class="accordion" id="{$accordionId}">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="{$headingId}">
-                                <button class="accordion-button collapsed" type="button"
-                                        data-bs-toggle="collapse" data-bs-target="#{$collapseId}"
-                                        aria-expanded="false" aria-controls="{$collapseId}">
-                                    Manage - {$sectionTitle}
-                                </button>
-                            </h2>
-                            <div id="{$collapseId}" class="accordion-collapse collapse"
-                                 aria-labelledby="{$headingId}" data-bs-parent="#{$accordionId}">
-                                <div class="accordion-body">
 HTML;
-    renderMediaUploadForm($conn, $pageSlug, $sectionSlug, $sectionId, $sectionTitle, $existingUpload);
+    if ($isAdminEditing) {
+        echo <<<HTML
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="accordion" id="{$accordionId}">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="{$headingId}">
+                                    <button class="accordion-button collapsed" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#{$collapseId}"
+                                            aria-expanded="false" aria-controls="{$collapseId}">
+                                        Manage - {$sectionTitle}
+                                    </button>
+                                </h2>
+                                <div id="{$collapseId}" class="accordion-collapse collapse"
+                                     aria-labelledby="{$headingId}" data-bs-parent="#{$accordionId}">
+                                    <div class="accordion-body">
+    HTML;
+        renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId);
 
-    echo <<<HTML
+        echo <<<HTML
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-HTML;
-
-    if ($existingUpload) {
-        $mediaHtml = '';
-        $mediaPath = htmlspecialchars($existingUpload['path']);
-        $caption = htmlspecialchars($existingUpload['caption']);
-        $position = ($existingUpload['position'] === 'right') ? 'order-lg-1' : 'order-lg-2';
-        $inversePosition = ($existingUpload['position'] === 'right') ? 'order-lg-2' : 'order-lg-1';
-
-        if ($existingUpload['media_type'] === 'image') {
-            $imgSrc = "assets/images/uploads/{$mediaPath}";
-            $videoSrc = ''; // empty
-            $imgClass = 'img-fluid rounded shadow';
-            $videoClass = 'img-fluid rounded shadow hide-empty-asset';
-        } elseif ($existingUpload['media_type'] === 'video') {
-            $imgSrc = ''; // empty
-            $videoSrc = "assets/images/uploads/{$mediaPath}";
-            $imgClass = 'img-fluid rounded shadow hide-empty-asset';
-            $videoClass = 'img-fluid rounded shadow';
-        }
-
-        $mediaHtml = "
-    <img src='{$imgSrc}' alt='Media' class='{$imgClass}' />
-    <video src='{$videoSrc}' controls class='{$videoClass}'></video>
-";
-
-
-
-        echo <<<HTML
-    <div id="media-preview-container-$sectionId">
-        <div class="row justify-content-center align-items-center mb-4">
-            <div class="col-lg-6 col-md-12 {$position}" data-aos="fade-left">
-                <p class="paragraph text-justify mb-3">{$caption}</p>
-            </div>
-            <div class="col-lg-6 {$inversePosition} image-wrapper" data-aos="zoom-out-down">
-                {$mediaHtml}
-            </div>
-        </div>
-    </div>
-HTML;
-    } else {
-        $mediaHtml = "<img src='' alt='Media' class='img-fluid rounded shadow hide-empty-asset' /><video src='' controls class='img-fluid rounded shadow hide-empty-asset'></video>";
-        echo <<<HTML
-    <div id="media-preview-container-$sectionId">
-        <div class="row justify-content-center align-items-center mb-4">
-            <div class="col-lg-6 col-md-12" data-aos="fade-left">
-                <p class="paragraph text-justify mb-3"></p>
-            </div>
-            <div class="col-lg-6 image-wrapper" data-aos="zoom-out-down">   
-                $mediaHtml             
-            </div>
-        </div>
-    </div>
-HTML;
+    HTML;
     }
+
+    echo "<div id='section-media-container-$sectionId'>";
+    foreach ($uploads as $existingUpload) {
+        renderSingleMediaItem($sectionId, $existingUpload, $pageSlug, $sectionSlug, $isAdminEditing);
+    }
+    echo '</div>';
 
     echo "</div></section>";
 }
 
-function renderMediaSectionFromArray($mediaItems = [])
+function renderSingleMediaItem($sectionId, $existingUpload, $pageSlug = null, $sectionSlug = null, $isAdminEditing)
 {
+    $uploadId = $existingUpload['upload_id'];
+    $uniqueId = "accordion-{$sectionId}-{$uploadId}";
+    $mediaHtml = '';
+    $mediaPath = htmlspecialchars($existingUpload['path']);
+    $caption = htmlspecialchars($existingUpload['caption']);
+    $position = ($existingUpload['position'] === 'right') ? 'order-lg-1' : 'order-lg-2';
+    $inversePosition = ($existingUpload['position'] === 'right') ? 'order-lg-2' : 'order-lg-1';
 
-    // === RENDER PROVIDED MEDIA ITEMS ===
-    foreach ($mediaItems as $media) {
-        $mediaPath = htmlspecialchars($media['path']);
-        $caption = htmlspecialchars($media['caption']);
-        $position = ($media['position'] === 'left') ? 'order-lg-1' : 'order-lg-2';
-        $inversePosition = ($media['position'] === 'left') ? 'order-lg-2' : 'order-lg-1';
+    if ($existingUpload['media_type'] === 'image') {
+        $imgSrc = "assets/images/uploads/{$mediaPath}";
+        $videoSrc = '';
+        $imgClass = 'img-fluid rounded shadow';
+        $videoClass = 'img-fluid rounded shadow hide-empty-asset';
+    } elseif ($existingUpload['media_type'] === 'video') {
+        $imgSrc = '';
+        $videoSrc = "assets/images/uploads/{$mediaPath}";
+        $imgClass = 'img-fluid rounded shadow hide-empty-asset';
+        $videoClass = 'img-fluid rounded shadow';
+    }
 
-        if ($media['media_type'] === 'image') {
-            $mediaHtml = "<img src='assets/images/uploads/{$mediaPath}' alt='Media' class='img-fluid rounded shadow'>";
-        } elseif ($media['media_type'] === 'video') {
-            $mediaHtml = "<video src='assets/images/uploads/{$mediaPath}' controls class='img-fluid rounded shadow'></video>";
-        } else {
-            $mediaHtml = '';
-        }
+    $mediaHtml = "
+        <img src='{$imgSrc}' alt='Media' class='{$imgClass}' />
+        <video src='{$videoSrc}' controls class='{$videoClass}'></video>
+    ";
 
-        echo <<<HTML
+    echo <<<HTML
+    <div id="media-preview-container-$uploadId" class="uploaded-asset-container">
         <div class="row justify-content-center align-items-center mb-4">
-            <div class="col-lg-6 col-md-12 {$position}" data-aos="fade-left">
+            <div class="col-lg-6 col-md-12 {$position}">
                 <p class="paragraph text-justify mb-3">{$caption}</p>
             </div>
-            <div class="col-lg-6 {$inversePosition} image-wrapper" data-aos="zoom-out-down">
+            <div class="col-lg-6 {$inversePosition} image-wrapper">
                 {$mediaHtml}
-            </div>
+            </div>            
         </div>
 HTML;
+
+    // Only render edit section if connection details are provided    
+    echo <<<HTML
+        <div class="row justify-content-end align-items-center mb-2">
+            <div class="col-lg-11">
+                <div class="collapse" id="$uniqueId">
+HTML;
+    renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpload);
+    echo <<<HTML
+                </div>
+            </div>
+HTML;
+    if ($isAdminEditing) {
+        echo <<<HTML
+            <div class="col-lg-1 text-end">
+                <button class="btn btn-warning" type="button" data-bs-toggle="collapse" data-bs-target="#$uniqueId" aria-expanded="false" aria-controls="$uniqueId">
+                    Edit
+                </button>
+            </div>
+HTML;
     }
+    echo <<<HTML
+        </div>
+    </div>
+HTML;
 }
-
-
-function renderSingleMediaItem($mediaItem)
-{
-    renderMediaSectionFromArray([$mediaItem]);
-}
-
-function getExistingUploadBySectionId($conn, $sectionId)
-{
-
-    if (!$sectionId || !is_numeric($sectionId)) {
-        return false; // safeguard against invalid input
-    }
-    $stmt = $conn->prepare("SELECT * FROM uploads WHERE section_id = ? LIMIT 1");
-    $stmt->execute([$sectionId]);
-    return $stmt->fetch();
-}
-
 ?>

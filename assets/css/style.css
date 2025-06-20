@@ -1420,3 +1420,40 @@ section {
 .hide-empty-asset {
   display: none;
 }
+
+.uploaded-asset-container {
+  /* Layout */
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+
+  /* Added subtle rounding */
+  padding: 10px;
+  margin: 8px 0;
+  /* Added vertical margin */
+  background-color: #fff;
+  /* Explicit white background */
+
+  /* Typography */
+  font-family: inherit;
+  /* Better inheritance */
+  color: #333;
+  /* Better contrast */
+
+  /* Animation */
+  transition: all 0.3s ease;
+  /* Smooth transitions for hover effects */
+}
+
+/* Optional hover state */
+.uploaded-asset-container:hover {
+  border-color: #cc0000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus state for accessibility */
+.uploaded-asset-container:focus-within {
+  outline: 2px solid #0066ff;
+  outline-offset: 2px;
+}
