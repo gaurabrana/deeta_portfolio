@@ -199,7 +199,252 @@ $(document).ready(function () {
                 });
         });
     });
+
+    // Handle image gallery form submission
+    $('#imageGalleryForm').on('submit', function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        formData.append('action', 'upload_image');
+
+        $.ajax({
+            url: './database/gallery_upload.php',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                try {                    
+                    var data = JSON.parse(response);
+                    if (data.success) {
+                        $('#imageGalleryFormResponse').html(
+                            '<div class="alert alert-success">' + data.message + '</div>'
+                        );
+
+                        // Reload after 3 seconds
+                        setTimeout(function () {
+                            location.reload();
+                        }, 3000);
+                    } else {
+                        $('#imageGalleryFormResponse').html(
+                            '<div class="alert alert-danger">' + data.message + '</div>'
+                        );
+                    }
+                } catch (e) {
+                    $('#imageGalleryFormResponse').html(
+                        '<div class="alert alert-danger">Error processing response</div>'
+                    );
+                }
+            },
+            error: function (error) {
+                console.log(error);
+                $('#imageGalleryFormResponse').html(
+                    '<div class="alert alert-danger">Error submitting form</div>'
+                );
+            }
+        });
+    });
+
+    // Handle video gallery form submission
+    $('#videoGalleryForm').on('submit', function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        formData.append('action', 'upload_video');
+
+        // Remove unused field based on selection
+        var videoSource = $('input[name="videoSource"]:checked').val();
+        if (videoSource === 'youtube') {
+            if (!$('#youtubeId').val()) {
+                $('#youtubeError').text('Please validate the YouTube URL first').show();
+                return false;
+            }
+            formData.delete('videoUpload');
+        } else {
+            formData.delete('videoUrl');
+        }
+
+        $.ajax({
+            url: './database/gallery_upload.php',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                try {                                        
+                    if (data.success) {
+                        $('#videoGalleryFormResponse').html(
+                            '<div class="alert alert-success">Upload successful!</div>'
+                        );
+
+                        // Reset form and UI
+                        $('#videoGalleryForm')[0].reset();
+                        $('#youtubePreview').hide();
+                        $('#youtubeError').hide();
+                        $('#youtubeSourceContainer').show();
+                        $('#uploadSourceContainer').hide();
+
+                        // Reload after 3 seconds
+                        setTimeout(function () {
+                            location.reload();
+                        }, 3000);
+                    } else {
+                        $('#videoGalleryFormResponse').html(
+                            '<div class="alert alert-danger">' + (data.message || 'Upload failed') + '</div>'
+                        );
+                    }
+                } catch (e) {
+                    $('#videoGalleryFormResponse').html(
+                        '<div class="alert alert-danger">Invalid server response</div>'
+                    );
+                }
+            },
+            error: function (error) {                
+                $('#videoGalleryFormResponse').html(
+                    '<div class="alert alert-danger">Error submitting form</div>'
+                );
+            }
+        });
+    });
+
+    // Handle delete button clicks
+    $(document).on('click', '.delete-overlay button', function () {
+        var overlay = $(this).parent('.delete-overlay');
+        var id = overlay.data('id');
+        var type = overlay.data('type');
+        var listItem = overlay.closest('li');
+
+        if (confirm('Are you sure you want to delete this item?')) {
+            $.ajax({
+                url: '../database/gallery_upload.php',
+                type: 'POST',
+                data: {
+                    action: 'delete_item',
+                    id: id,
+                    type: type
+                },
+                success: function (response) {
+                    try {
+                        var data = JSON.parse(response);
+                        if (data.success) {
+                            listItem.fadeOut(300, function () {
+                                $(this).remove();
+                            });
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    } catch (e) {
+                        alert('Error processing response');
+                    }
+                },
+                error: function () {
+                    alert('Error submitting request');
+                }
+            });
+        }
+    });
+
+
+    const types = ['image', 'video'];
+    types.forEach(function (type) {
+        const formId = (type === 'video') ? 'videoGalleryForm' : 'imageGalleryForm';
+        const $input = $('#' + formId + ' input[type="file"]');
+        const $preview = $('#' + formId + 'Preview');
+
+        if ($input.length && $preview.length) {
+            $input.on('change', function (e) {
+                $preview.empty(); // Clear previous previews
+                const files = e.target.files;
+
+                $.each(files, function (i, file) {
+                    const url = URL.createObjectURL(file);
+                    let $media;
+
+                    if (type === 'image') {
+                        $media = $('<img>').attr('src', url).attr('alt', file.name);
+                    } else {
+                        $media = $('<video>').attr('src', url).attr('controls', true);
+                    }
+
+                    $media.css({
+                        'max-width': '200px',
+                        'max-height': '150px',
+                        'margin': '5px',
+                        'border': '1px solid #ccc',
+                        'border-radius': '6px',
+                        'object-fit': 'cover'
+                    });
+
+                    $preview.append($media);
+                });
+            });
+        }
+    });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/// FUNCTIONS STARTS FROM HERE
 
 
 // Function to clear all fields with class 'editable-field' within a specific form

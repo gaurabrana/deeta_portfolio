@@ -7,7 +7,7 @@ function renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpl
     $formId = "mediaUploadForm-{$pageSlug}-{$sectionSlug}";
     $captionId = "caption-{$pageSlug}-{$sectionSlug}";
     $fileInputId = "media-{$pageSlug}-{$sectionSlug}";
-    $previewId = "media-preview-{$pageSlug}-{$sectionSlug}";    
+    $previewId = "media-preview-{$pageSlug}-{$sectionSlug}";
     $positionId = "media-position-{$pageSlug}-{$sectionSlug}";
 
     $existingCaption = htmlspecialchars($existing['caption'] ?? '');
@@ -229,5 +229,262 @@ HTML;
         </div>
     </div>
 HTML;
+}
+
+// Function to generate accordion form for adding new gallery items
+function generateGalleryAccordionForm($section_id, $type = 'image')
+{
+
+
+    $isVideo = ($type === 'video');
+    $title = $isVideo ? 'Add New Video' : 'Add New Image';
+    $formId = $isVideo ? 'videoGalleryForm' : 'imageGalleryForm';
+    $typeCapitalized = ucfirst($type);
+
+    ob_start();
+
+    echo <<<HTML
+    <div class="accordion mb-4" id="galleryAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse{$typeCapitalized}" aria-expanded="false"
+                    aria-controls="collapse{$typeCapitalized}">
+                    {$title}
+                </button>
+            </h2>
+            <div id="collapse{$typeCapitalized}" class="accordion-collapse collapse"
+                data-bs-parent="#galleryAccordion">
+                <div class="accordion-body">
+                    <form id="{$formId}" enctype="multipart/form-data">
+                        <input type="hidden" name="section_slug" value="gallery_{$type}">
+                        <input type="hidden" name="page_slug" value="gallery">
+                        <input type="hidden" name="section_id" value="$section_id">
+                        <div class="mb-3">
+    HTML;
+
+    if ($isVideo) {
+        echo <<<HTML
+                            <div class="mb-3">
+                                <label class="form-label">Video Source</label>
+                                <div class="form-check">
+                                    <input class="form-check-input video-source" type="radio" name="videoSource" id="youtubeSource" value="youtube" checked>
+                                    <label class="form-check-label" for="youtubeSource">
+                                        YouTube URL
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input video-source" type="radio" name="videoSource" id="uploadSource" value="upload">
+                                    <label class="form-check-label" for="uploadSource">
+                                        Upload Video File
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div id="youtubeSourceContainer">
+                                <label for="videoUrl" class="form-label">YouTube Video URL</label>
+                                <div class="input-group">
+                                    <input type="url" class="form-control" id="videoUrl" name="videoUrl"
+                                        placeholder="https://www.youtube.com/watch?v=..." required>
+                                    <button class="btn btn-outline-secondary" type="button" id="validateYoutubeBtn">
+                                        <i class="bi bi-check-circle"></i> Validate
+                                    </button>
+                                </div>
+                                <div id="youtubePreview" class="mt-2" style="display:none;">
+                                    <div class="alert alert-success mb-2">Valid YouTube URL</div>
+                                    <img id="youtubeThumbnail" src="" class="img-thumbnail" style="max-width: 200px;">
+                                    <input type="hidden" id="youtubeId" name="youtubeId">
+                                </div>
+                                <div id="youtubeError" class="alert alert-danger mt-2" style="display:none;"></div>
+                            </div>
+                            
+                            <div id="uploadSourceContainer" style="display:none;">
+                                <label for="videoUpload" class="form-label">Select Video File</label>
+                                <input class="form-control" type="file" id="videoUpload" name="videoUpload[]" accept="video/*" multiple>
+                                <div class="form-text">Supported formats: MP4, WebM, OGG (Max 50MB)</div>
+                            </div>
+        HTML;
+    } else {
+        echo <<<HTML
+                            <label for="imageUpload" class="form-label">Select Image(s)</label>
+                            <input class="form-control" type="file" id="imageUpload" name="imageUpload[]" accept="image/*"
+                                multiple required>
+                            <div class="form-text">Supported formats: JPG, PNG, GIF (Max 10MB each)</div>
+        HTML;
+    }
+
+    echo <<<HTML
+                        </div>                      
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </form>
+                    <div id="{$formId}Preview" class="mt-3 preview-container"></div>
+                    <div id="{$formId}Response" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    HTML;
+    return ob_get_clean();
+}
+
+// Function to get gallery items from database
+function getGalleryItems($conn, $type = 'image')
+{
+    $isVideo = ($type === 'video');
+    $sectionSlug = $isVideo ? 'gallery_video' : 'gallery_image';
+
+    $query = "SELECT u.path, u.caption, u.media_type, su.upload_id, s.id, s.slug, p.slug as pageSlug 
+              FROM sections s
+              JOIN section_upload su ON s.id = su.section_id
+              JOIN uploads u ON u.id = su.upload_id
+              JOIN pages p ON s.page_id = p.id
+              WHERE s.slug = ? 
+              AND p.slug = 'gallery'";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $sectionSlug);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $items = [];
+    while ($row = $result->fetch_assoc()) {
+        if ($isVideo) {
+            // Extract YouTube ID from URL
+            parse_str(parse_url($row['path'], PHP_URL_QUERY), $params);
+            $youtubeId = $params['v'] ?? '';
+
+            $items[] = [
+                'id' => $row['upload_id'],
+                'path' => $row['path'],
+                'youtube_id' => $youtubeId,
+                'caption' => $row['caption']
+            ];
+        } else {
+            // For images, path is the full URL to the image
+            $items[] = [
+                'id' => $row['upload_id'],
+                'url' => $row['path'],
+                'thumbnail' => $row['path'], // Assuming same image for thumbnail
+                'caption' => $row['caption']
+            ];
+        }
+    }
+
+    return $items;
+}
+
+// Function to generate gallery items list
+function generateGalleryItems($conn, $type = 'image')
+{
+    $items = getGalleryItems($conn, $type);
+    $isVideo = ($type === 'video');
+    $containerClass = $isVideo ? 'video-gallery-container' : 'gallery-container';
+
+    echo <<<HTML
+    <div class="{$containerClass}">
+        <ul class="gallery-list list-unstyled row">
+    HTML;
+
+    foreach ($items as $item) {
+        $id = htmlspecialchars($item['id']);
+        $caption = htmlspecialchars($item['caption']);
+
+        if ($isVideo) {
+            if (!empty($item['youtube_id'])) {
+                $youtubeId = htmlspecialchars($item['youtube_id']);
+                $url = htmlspecialchars($item['path']);
+
+                echo <<<HTML
+                <li class="col-md-4 col-sm-6 mb-4 position-relative">
+                    <a href="{$url}" data-fancybox="video-gallery">
+                        <img src="https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg" 
+                            class="img-fluid" alt="YouTube video thumbnail">
+                        <div class="delete-overlay" data-id="{$id}" data-type="video">
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </div>
+                    </a>
+                </li>
+                HTML;
+            } else {
+                $videoPath = htmlspecialchars($item['path']);                
+
+                echo <<<HTML
+                <li class="col-md-4 col-sm-6 mb-4 position-relative">
+                    <a href="assets/images/gallery_uploads/video/{$videoPath}" data-fancybox="video-gallery">
+                        <video class="img-fluid" controls>
+                            <source src="assets/images/gallery_uploads/video/{$videoPath}" type="video/mp4">
+                        </video>
+                        <div class="delete-overlay" data-id="{$id}" data-type="video">
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </div>
+                    </a>
+                </li>
+                HTML;
+            }
+        } else {
+            $imagePath = htmlspecialchars($item['path']);            
+
+            echo <<<HTML
+            <li class="col-md-4 col-sm-6 mb-4 position-relative">
+                <a href="assets/images/gallery_uploads/image/{$imagePath}" data-fancybox="gallery" 
+                    data-caption="{$caption}">
+                    <figure>
+                        <img src="assets/images/gallery_uploads/image/{$imagePath}" 
+                            class="img-fluid" alt="{$caption}">                        
+                    </figure>
+                    <div class="delete-overlay" data-id="{$id}" data-type="image">
+                        <button class="btn btn-danger btn-sm">Delete</button>
+                    </div>
+                </a>
+            </li>
+            HTML;
+        }
+    }
+
+    echo <<<HTML
+        </ul>
+    </div>
+    HTML;
+}
+
+function getSectionId($conn, $type = 'image')
+{
+    // Validate the type parameter
+    $validTypes = ['image', 'video'];
+    if (!in_array($type, $validTypes)) {
+        throw new InvalidArgumentException("Invalid section type. Must be 'image' or 'video'.");
+    }
+
+    // Prepare the query with parameterized input
+    $query = "SELECT id FROM sections WHERE slug = ?";
+    $stmt = $conn->prepare($query);
+
+    if (!$stmt) {
+        throw new RuntimeException("Failed to prepare statement: " . $conn->error);
+    }
+
+    // Bind parameters and execute
+    $slug = 'gallery_' . $type;
+    $stmt->bind_param("s", $slug);
+
+    if (!$stmt->execute()) {
+        throw new RuntimeException("Execution failed: " . $stmt->error);
+    }
+
+    // Get result
+    $result = $stmt->get_result();
+
+    if (!$result) {
+        throw new RuntimeException("Failed to get result: " . $stmt->error);
+    }
+
+    $row = $result->fetch_assoc();
+    $stmt->close();
+
+    if (!$row) {
+        throw new RuntimeException("No section found with slug: gallery_$type");
+    }
+
+    return $row['id'];
 }
 ?>

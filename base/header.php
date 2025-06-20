@@ -185,14 +185,14 @@ include('database/connect.php');
                         <ul class="dropdown-menu">
                             <!-- Giving Back to My School -->
                             <li>
-                                <a class="dropdown-item" href="givingback.php#giving_back_to_school">
+                                <a class="dropdown-item" href="givingback.php#giving_back_to_my_school">
                                     Giving Back to My School
                                 </a>
                             </li>
 
                             <!-- Giving Back to My Community -->
                             <li>
-                                <a class="dropdown-item" href="givingback.php#giving_back_to_community">
+                                <a class="dropdown-item" href="givingback.php#giving_back_to_my_community">
                                     Giving Back to My Community
                                 </a>
                             </li>

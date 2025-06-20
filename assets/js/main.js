@@ -56,4 +56,56 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    $('.video-source').change(function () {
+        if ($(this).val() === 'youtube') {
+            $('#youtubeSourceContainer').show();
+            $('#uploadSourceContainer').hide();
+            $('#videoUrl').prop('required', true);
+            $('#videoUpload').prop('required', false);
+        } else {
+            $('#youtubeSourceContainer').hide();
+            $('#uploadSourceContainer').show();
+            $('#videoUrl').prop('required', false);
+            $('#videoUpload').prop('required', true);
+        }
+    });
+
+    // YouTube URL validation and preview
+    $('#validateYoutubeBtn').click(validateYouTubeUrl);
+    $('#videoUrl').on('change paste keyup', function () {
+        $('#youtubePreview').hide();
+        $('#youtubeError').hide();
+    });
 });
+
+
+function validateYouTubeUrl() {
+    const url = $('#videoUrl').val().trim();
+    const errorDiv = $('#youtubeError');
+    const previewDiv = $('#youtubePreview');
+
+    if (!url) {
+        errorDiv.text('Please enter a YouTube URL').show();
+        return;
+    }
+
+    // Reset display
+    errorDiv.hide();
+    previewDiv.hide();
+
+    // Extract YouTube ID
+    let videoId = '';
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+
+    if (match && match[2].length === 11) {
+        videoId = match[2];
+        $('#youtubeId').val(videoId);
+
+        // Show preview
+        $('#youtubeThumbnail').attr('src', 'https://img.youtube.com/vi/' + videoId + '/mqdefault.jpg');
+        previewDiv.show();
+    } else {
+        errorDiv.text('Invalid YouTube URL. Please use a standard YouTube link.').show();
+    }
+}
