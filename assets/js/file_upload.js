@@ -240,6 +240,73 @@ $(document).ready(function () {
         });
     }
 
+    $('#resumeUploadForm').on('submit', async function (e) {
+        e.preventDefault();
+
+        const fileInput = this.querySelector('input[type="file"]');
+        const previewId = fileInput.dataset.preview;
+        const statusId = fileInput.dataset.status;
+        const statusBox = document.getElementById(statusId);
+
+        const formData = new FormData(this);
+
+        fetch('./database/upload.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log(data);
+                if (data.success) {
+                    // Successful upload                        
+                    showTemporaryStatus(
+                        statusBox,
+                        `<div class="alert alert-success">${data.message}</div>`,
+                        { duration: 3000 }
+                    );
+                    setTimeout(() => location.reload(), 3000);
+
+                    // Clear any previous preview
+                    document.getElementById(previewId).innerHTML = '';
+                } else {
+                    // Failed upload
+                    let errorMessage = data.message || 'Upload failed';
+                    if (data.file_exists_but_not_deleted) {
+                        errorMessage += ' (could not remove previous file)';
+                    }
+                    showTemporaryStatus(
+                        statusBox,
+                        `<div class="alert alert-danger">${errorMessage}</div>`,
+                        { duration: 3000 }
+                    );
+                }
+            })
+            .catch(err => {
+                const statusBox = document.getElementById('upload-status');
+                console.error('Upload error:', err);
+                showTemporaryStatus(
+                    statusBox,
+                    `
+        <div class="alert alert-danger">
+            Upload failed: ${err.message || 'Network or server error'}
+        </div>
+    `,
+                    { duration: 3000 }
+                );
+
+
+                // Optional: Show more detailed error in console for debugging
+                if (err.response) {
+                    err.response.text().then(text => console.error('Server response:', text));
+                }
+            });
+    });
+
     $('#imageGalleryForm').on('submit', async function (e) {
         e.preventDefault();
 
@@ -479,13 +546,11 @@ $(document).ready(function () {
 
 /// FUNCTIONS STARTS FROM HERE
 function handleDelete(buttonClass) {
-    $(document).on('click', buttonClass + ' button', function (e) {        
+    $(document).on('click', buttonClass + ' button', function (e) {
         const overlay = $(this).parent();
         const id = overlay.data('id');
         const type = overlay.data('type');
         const listItem = overlay.closest('li');
-
-        console.log(id, type);
 
         if (!id || !type) {
             alert('Invalid delete request.');

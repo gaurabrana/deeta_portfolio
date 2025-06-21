@@ -94,21 +94,33 @@ function validateAndProcessInput($postData, $fileData)
 function validateUploadedFile($file)
 {
     $maxSize = 50 * 1024 * 1024; // 50MB
+
+    if (!isset($file['tmp_name']) || !file_exists($file['tmp_name'])) {
+        throw new Exception('Invalid file upload.');
+    }
+
     if ($file['size'] > $maxSize) {
         throw new Exception('File too large. Max 50MB allowed.');
     }
 
     $allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     $allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+    $allowedPdfTypes = ['application/pdf'];
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
 
+    if (!$mime) {
+        throw new Exception('Unable to detect file type.');
+    }
+
     if (in_array($mime, $allowedImageTypes)) {
         return ['media_type' => 'image', 'mime' => $mime];
     } elseif (in_array($mime, $allowedVideoTypes)) {
         return ['media_type' => 'video', 'mime' => $mime];
+    } elseif (in_array($mime, $allowedPdfTypes)) {
+        return ['media_type' => 'pdf', 'mime' => $mime];
     }
 
     throw new Exception('Unsupported file type.');
@@ -327,14 +339,15 @@ function prepareSuccessResponse($output, $uploadResult, $input)
             'caption' => $input['caption'],
             'position' => $input['position'],
             'media_type' => $uploadResult['media_type']
-        ];
-
-        $output['temp'] = $tempUpload;
+        ];        
 
         // Capture the output of renderSingleMediaItem
-        ob_start();
-        renderSingleMediaItem($input['section_id'], $tempUpload, $input['page_slug'], $input['section_slug'], true);
-        $output['html'] = ob_get_clean();
+        if ($uploadResult['media_type'] === 'image' || $uploadResult['media_type'] === 'video') {
+
+            ob_start();
+            renderSingleMediaItem($input['section_id'], $tempUpload, $input['page_slug'], $input['section_slug'], true);
+            $output['html'] = ob_get_clean();
+        }
     }
 
     // Handle file deletion status

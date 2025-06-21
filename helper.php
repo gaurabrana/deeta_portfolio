@@ -121,6 +121,7 @@ function renderMediaSection($conn, $pageSlug, $sectionId, $sectionSlug, $section
     $uploads = $result->fetch_all(MYSQLI_ASSOC);  // fetch all rows at once    
     $isAdminEditing = true; // this will flag whether to show editing options or not
 
+
     echo <<<HTML
     <section id="{$sectionSlug}" class="py-5">
         <div class="container">
@@ -145,7 +146,38 @@ HTML;
                                      aria-labelledby="{$headingId}" data-bs-parent="#{$accordionId}">
                                     <div class="accordion-body">
     HTML;
-        renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId);
+        if ($pageSlug == 'about_me' && $sectionSlug == 'resume') {
+            $isEdit = !empty($uploads);
+            $previewId = "resume-media-preview";
+            $statusId = 'resume-upload-status';
+            echo <<<HTML
+    <form id="resumeUploadForm" enctype="multipart/form-data" method="post">
+        <div class="mb-3">
+            <label for="resumeFile" class="form-label">Upload Resume (PDF only):</label>
+            <input type="file" name="media" data-preview="$previewId"
+                       data-status="$statusId" class="form-control" id="resumeFile" name="resume" accept=".pdf" required>
+        </div>
+        <input type="hidden" name="page_slug" value="$pageSlug">
+        <input type="hidden" name="section_slug" value="$sectionSlug">
+        <input type="hidden" name="section_id" value="$sectionId">
+        <div class="mt-2" id="$statusId"></div>
+    HTML;
+            if ($isEdit) {
+
+                echo '<button type="submit" class="btn btn-primary">Update</button>
+                <button class="btn btn-danger delete-resume-btn visible-delete-button" >Delete Existing</button>';
+            } else {
+                echo '<button type="submit" class="btn btn-primary">Upload</button>';
+            }
+
+            echo <<<HTML
+        <div id="$previewId" class="mt-3">        
+    </form>
+    HTML;
+        } else {
+
+            renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId);
+        }
 
         echo <<<HTML
                                     </div>
@@ -175,6 +207,25 @@ function renderSingleMediaItem($sectionId, $existingUpload, $pageSlug = null, $s
     $caption = htmlspecialchars($existingUpload['caption']);
     $position = ($existingUpload['position'] === 'right') ? 'order-lg-1' : 'order-lg-2';
     $inversePosition = ($existingUpload['position'] === 'right') ? 'order-lg-2' : 'order-lg-1';
+
+    if ($existingUpload['media_type'] === 'pdf') {
+        $path = "assets/images/uploads/{$mediaPath}";
+
+        echo <<<HTML
+        <div class="row">
+        <div class="col-md-12">
+        <input type="hidden" id="pdfPath" value="$path">
+        <div id="pdf-loading" style="display: none; font-style: italic;" class="my-2">Loading PDF preview...</div>
+        <div id="pdf-preview-container" class="mt-3">            
+            </div>            
+        </div>
+        <div class="mt-2" style="display:none;" id="resume-download-button">
+                <a href="{$path}" download class="btn btn-secondary">Download PDF</a>
+        </div>
+    </div>
+HTML;
+        return;
+    }
 
     if ($existingUpload['media_type'] === 'image') {
         $imgSrc = "assets/images/uploads/{$mediaPath}";

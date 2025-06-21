@@ -76,6 +76,70 @@ document.addEventListener("DOMContentLoaded", function () {
         $('#youtubePreview').hide();
         $('#youtubeError').hide();
     });
+
+    document.getElementById('resumeFile').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        const previewContainer = document.getElementById('resume-media-preview');
+
+        previewContainer.innerHTML = ''; // Clear previous preview
+
+        if (file && file.type === 'application/pdf') {
+            const fileURL = URL.createObjectURL(file);
+            const embed = document.createElement('embed');
+            embed.src = fileURL;
+            embed.type = 'application/pdf';
+            embed.width = '100%';
+            embed.height = '400px';
+            embed.style.border = '1px solid #ccc';
+
+            previewContainer.appendChild(embed);
+        } else {
+            previewContainer.innerHTML = '<div class="text-danger">Please select a valid PDF file.</div>';
+        }
+    });
+
+    function renderPdfPreview(pdfUrl) {
+        // Clear previous preview if any
+        // Show loading indicator
+        loadingIndicator.style.display = 'block';
+        previewContainer.innerHTML = ''; // Clear previous preview
+
+        pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+            pdf.getPage(1).then(page => {
+                const scale = 2;
+                const viewport = page.getViewport({ scale });
+
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                page.render({ canvasContext: context, viewport }).promise.then(() => {
+                    const img = document.createElement('img');
+                    img.src = canvas.toDataURL(); // Convert canvas to image
+                    img.alt = 'PDF Preview';
+                    img.classList.add('img-fluid');
+                    previewContainer.appendChild(img);
+                    loadingIndicator.style.display = 'none';
+                    downloadButton.style.display = 'block';
+                });
+            });
+        }).catch(err => {
+            loadingIndicator.style.display = 'none';
+            container.innerHTML = '<p class="text-danger">Failed to load PDF preview.</p>';
+            console.error(err);
+        });
+    }
+
+    // Example: get the pdf path from the hidden input and render preview
+    const pdfPath = document.getElementById('pdfPath').value;
+    const loadingIndicator = document.getElementById('pdf-loading');
+    const previewContainer = document.getElementById('pdf-preview-container');
+    const downloadButton = document.getElementById('resume-download-button');
+    if (pdfPath) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        renderPdfPreview(pdfPath);
+    }
 });
 
 
