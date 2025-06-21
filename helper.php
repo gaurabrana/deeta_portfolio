@@ -149,7 +149,8 @@ HTML;
         if ($pageSlug == 'about_me' && $sectionSlug == 'resume') {
             $isEdit = !empty($uploads);
             $previewId = "resume-media-preview";
-            $statusId = 'resume-upload-status';
+            $statusId = 'resume-upload-status';            
+            $uploadId = $isEdit ? $uploads[0]['upload_id'] : '';
             echo <<<HTML
     <form id="resumeUploadForm" enctype="multipart/form-data" method="post">
         <div class="mb-3">
@@ -160,12 +161,13 @@ HTML;
         <input type="hidden" name="page_slug" value="$pageSlug">
         <input type="hidden" name="section_slug" value="$sectionSlug">
         <input type="hidden" name="section_id" value="$sectionId">
+        <input type="hidden" name="upload_id" value="$uploadId">
         <div class="mt-2" id="$statusId"></div>
     HTML;
             if ($isEdit) {
 
                 echo '<button type="submit" class="btn btn-primary">Update</button>
-                <button class="btn btn-danger delete-resume-btn visible-delete-button" >Delete Existing</button>';
+                <button type="button" id="remove-upload-resume-'.$uploadId.'" class="btn btn-danger delete-resume-btn visible-delete-button">Delete Existing</button>';
             } else {
                 echo '<button type="submit" class="btn btn-primary">Upload</button>';
             }
@@ -207,7 +209,7 @@ function renderSingleMediaItem($sectionId, $existingUpload, $pageSlug = null, $s
     $caption = htmlspecialchars($existingUpload['caption']);
     $position = ($existingUpload['position'] === 'right') ? 'order-lg-1' : 'order-lg-2';
     $inversePosition = ($existingUpload['position'] === 'right') ? 'order-lg-2' : 'order-lg-1';
-
+    
     if ($existingUpload['media_type'] === 'pdf') {
         $path = "assets/images/uploads/{$mediaPath}";
 

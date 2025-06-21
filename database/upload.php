@@ -205,7 +205,7 @@ function processFileUpload($file, $mediaType, $sectionId, $input)
     if (!move_uploaded_file($file["tmp_name"], $targetFile)) {
         throw new Exception('Error saving file.');
     }
-
+    
     // Check for existing upload
     $existingUpload = getExistingUpload($sectionId, $input['upload_id']);
     $existingPath = $existingUpload ? $uploadDir . $existingUpload['path'] : null;

@@ -132,11 +132,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Example: get the pdf path from the hidden input and render preview
-    const pdfPath = document.getElementById('pdfPath').value;
+    const pdfPathField = document.getElementById('pdfPath');    
     const loadingIndicator = document.getElementById('pdf-loading');
     const previewContainer = document.getElementById('pdf-preview-container');
     const downloadButton = document.getElementById('resume-download-button');
-    if (pdfPath) {
+    if (pdfPathField) {
+        const pdfPath = pdfPathField.value;
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         renderPdfPreview(pdfPath);
     }

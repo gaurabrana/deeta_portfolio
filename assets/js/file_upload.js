@@ -250,6 +250,10 @@ $(document).ready(function () {
 
         const formData = new FormData(this);
 
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+        }
+
         fetch('./database/upload.php', {
             method: 'POST',
             body: formData
@@ -305,6 +309,88 @@ $(document).ready(function () {
                     err.response.text().then(text => console.error('Server response:', text));
                 }
             });
+    });
+
+    $('.delete-resume-btn').on('click', function () {
+        const id = $(this).attr('id'); // FIXED: use attr to get the ID
+        const uploadId = id && id.includes('remove-upload-resume-')
+            ? id.split('remove-upload-resume-')[1]
+            : null;
+        const statusBox = document.getElementById("resume-upload-status");
+        if (!uploadId) return;
+
+        if (!confirm('Are you sure you want to delete this media?')) return;
+
+        $.ajax({
+            url: './database/delete_upload.php',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ upload_id: uploadId }),
+            success: function (response) {
+                // Ensure JSON object
+                if (typeof response === 'string') {
+                    try {
+                        response = JSON.parse(response);
+                    } catch (e) {
+                        console.error('Invalid JSON:', e);
+                        showTemporaryStatus(
+                            statusBox,
+                            '<div class="alert alert-danger">Error deleting media</div>',
+                            { duration: 3000 }
+                        );
+                        return;
+                    }
+                }
+
+                if (response.success) {
+                    // Remove preview container
+                    $('#pdf-preview-container').remove();
+                    $('#resume-download-button').hide();
+                    $('.delete-resume-btn').hide();
+
+                    if (response.file_deleted) {
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-success">Resume deleted. Please wait for page reload.</div>`,
+                            { duration: 3000 }
+                        );
+                    } else if (response.file_delete_error) {
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-warning">Record deleted, but file could not be removed from server.</div>`,
+                            { duration: 3000 }
+                        );
+                    } else if (response.file_missing) {
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-info">Record deleted. File was already missing.</div>`,
+                            { duration: 3000 }
+                        );
+                    } else {
+                        showTemporaryStatus(
+                            statusBox,
+                            `<div class="alert alert-success">Record deleted (unknown file state).</div>`,
+                            { duration: 3000 }
+                        );
+                    }
+                    setTimeout(() => location.reload(), 3000);
+                } else {
+                    showTemporaryStatus(
+                        statusBox,
+                        '<div class="alert alert-danger">Failed to delete media: ' + (response.error || 'Unknown error') + '</div>',
+                        { duration: 3000 }
+                    );
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+                showTemporaryStatus(
+                    statusBox,
+                    '<div class="alert alert-danger">Error deleting media: ' + error + '</div>',
+                    { duration: 3000 }
+                );
+            }
+        });
     });
 
     $('#imageGalleryForm').on('submit', async function (e) {
