@@ -319,6 +319,7 @@ function generateGalleryAccordionForm($section_id, $type = 'image')
                     </form>
                     <div id="{$formId}Preview" class="mt-3 preview-container"></div>
                     <div id="{$formId}Response" class="mt-3"></div>
+                    <div id="imageResizeProgress" class="text-info my-2" style="display:none;"></div>
                 </div>
             </div>
         </div>
@@ -396,33 +397,35 @@ function generateGalleryItems($conn, $type = 'image')
 
                 echo <<<HTML
                 <li>
+                    <div class="video-delete-overlay" data-id="{$id}" data-type="video">
+                            <button class="btn btn-danger btn-sm">Delete</button>                            
+                        </div>
                     <a href="{$url}" data-fancybox="video-gallery">
                         <img src="https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg" 
                             class="img-fluid" alt="YouTube video thumbnail">
-                        <div class="delete-overlay" data-id="{$id}" data-type="video">
-                            <button class="btn btn-danger btn-sm">Delete</button>
-                        </div>
+                        
                     </a>
                 </li>
                 HTML;
             } else {
-                $videoPath = htmlspecialchars($item['path']);                
+                $videoPath = htmlspecialchars($item['path']);
 
                 echo <<<HTML
                 <li>
+                     <div class="video-delete-overlay" data-id="{$id}" data-type="video">
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </div>
                     <a href="assets/images/gallery_uploads/video/{$videoPath}" data-fancybox="video-gallery">
                         <video class="img-fluid" controls>
                             <source src="assets/images/gallery_uploads/video/{$videoPath}" type="video/mp4">
                         </video>
-                        <div class="delete-overlay" data-id="{$id}" data-type="video">
-                            <button class="btn btn-danger btn-sm">Delete</button>
-                        </div>
+                       
                     </a>
                 </li>
                 HTML;
             }
         } else {
-            $imagePath = htmlspecialchars($item['path']);            
+            $imagePath = htmlspecialchars($item['path']);
 
             echo <<<HTML
             <li class="position-relative">
@@ -431,11 +434,11 @@ function generateGalleryItems($conn, $type = 'image')
                     <figure>
                         <img src="assets/images/gallery_uploads/image/{$imagePath}" 
                             class="img-fluid" alt="{$caption}">                        
-                    </figure>
-                    <div class="delete-overlay" data-id="{$id}" data-type="image">
+                    </figure>                    
+                </a>
+                <div class="delete-overlay" data-id="{$id}" data-type="image">
                         <button class="btn btn-danger btn-sm">Delete</button>
                     </div>
-                </a>
             </li>
             HTML;
         }

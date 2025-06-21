@@ -8,6 +8,7 @@ if (!isset($data['upload_id']) || !is_numeric($data['upload_id'])) {
 }
 
 $uploadId = (int) $data['upload_id'];
+$isGalleryItem = isset($data['delete_type']) && $data['delete_type'] === 'gallery';
 
 include 'connect.php';
 
@@ -23,6 +24,14 @@ if (!$upload) {
 }
 
 $filePath = __DIR__ . '/../assets/images/uploads/' . $upload['path'];
+if ($isGalleryItem) {
+    $type = $data['type']; // expected to be 'image' or 'video'
+
+    // Sanitize $type and make sure it's valid
+    if (in_array($type, ['image', 'video'])) {
+        $filePath = __DIR__ . '/../assets/images/gallery_uploads/' . $type . '/' . $upload['path'];
+    }
+}
 
 // Delete DB record
 $stmt = $conn->prepare("DELETE FROM section_upload WHERE upload_id = ?");

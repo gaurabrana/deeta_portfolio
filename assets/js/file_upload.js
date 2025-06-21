@@ -200,33 +200,98 @@ $(document).ready(function () {
         });
     });
 
-    // Handle image gallery form submission
-    $('#imageGalleryForm').on('submit', function (e) {
+    // Handle image gallery form submission    
+    async function resizeImage(file, maxWidth = 1280, maxHeight = 1280) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const canvas = document.createElement('canvas');
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        const aspect = width / height;
+                        if (width > height) {
+                            width = maxWidth;
+                            height = Math.round(width / aspect);
+                        } else {
+                            height = maxHeight;
+                            width = Math.round(height * aspect);
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        const resizedFile = new File([blob], file.name, { type: file.type });
+                        resolve(resizedFile);
+                    }, file.type, 0.9); // 0.9 is quality
+                };
+                img.src = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        });
+    }
+
+    $('#imageGalleryForm').on('submit', async function (e) {
         e.preventDefault();
-        var formData = new FormData(this);
-        formData.append('action', 'upload_image');
+
+        const originalFormData = new FormData(this);
+        const newFormData = new FormData();
+
+        $('#imageResizeProgress').html('Preparing images for upload...').show();
+
+        // Copy all fields except files
+        for (let [key, value] of originalFormData.entries()) {
+            if (key !== 'imageUpload[]') {
+                newFormData.append(key, value);
+            }
+        }
+
+        // Add action explicitly
+        newFormData.append('action', 'upload_image');
+
+        // Handle image files (resize if > 5MB)
+        const files = $('input[name="imageUpload[]"]')[0].files;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            if (file.size > 5 * 1024 * 1024) {
+                $('#imageResizeProgress').html(`Resizing image ${i + 1} of ${files.length}...`);
+                const resized = await resizeImage(file);
+                newFormData.append('imageUpload[]', resized, resized.name);
+            } else {
+                newFormData.append('imageUpload[]', file, file.name);
+            }
+        }
+
+        $('#imageResizeProgress').html('Uploading images...');
 
         $.ajax({
             url: './database/gallery_upload.php',
             type: 'POST',
-            data: formData,
+            data: newFormData,
             contentType: false,
             processData: false,
-            success: function (response) {
-                try {                    
-                    var data = JSON.parse(response);
+            success: function (data) {
+                $('#imageResizeProgress').hide(); // Hide after upload
+                try {
                     if (data.success) {
                         $('#imageGalleryFormResponse').html(
-                            '<div class="alert alert-success">' + data.message + '</div>'
+                            '<div class="alert alert-success">Upload Success.</div>'
                         );
-
-                        // Reload after 3 seconds
-                        setTimeout(function () {
-                            location.reload();
-                        }, 3000);
+                        setTimeout(() => location.reload(), 3000);
                     } else {
                         $('#imageGalleryFormResponse').html(
-                            '<div class="alert alert-danger">' + data.message + '</div>'
+                            '<div class="alert alert-danger">' + data.errors[0] + '</div>'
                         );
                     }
                 } catch (e) {
@@ -235,8 +300,7 @@ $(document).ready(function () {
                     );
                 }
             },
-            error: function (error) {
-                console.log(error);
+            error: function () {
                 $('#imageGalleryFormResponse').html(
                     '<div class="alert alert-danger">Error submitting form</div>'
                 );
@@ -269,7 +333,7 @@ $(document).ready(function () {
             contentType: false,
             processData: false,
             success: function (data) {
-                try {                                        
+                try {
                     if (data.success) {
                         $('#videoGalleryFormResponse').html(
                             '<div class="alert alert-success">Upload successful!</div>'
@@ -297,7 +361,7 @@ $(document).ready(function () {
                     );
                 }
             },
-            error: function (error) {                
+            error: function (error) {
                 $('#videoGalleryFormResponse').html(
                     '<div class="alert alert-danger">Error submitting form</div>'
                 );
@@ -305,42 +369,11 @@ $(document).ready(function () {
         });
     });
 
-    // Handle delete button clicks
-    $(document).on('click', '.delete-overlay button', function () {
-        var overlay = $(this).parent('.delete-overlay');
-        var id = overlay.data('id');
-        var type = overlay.data('type');
-        var listItem = overlay.closest('li');
+    // For videos
+    handleDelete('.video-delete-overlay');
 
-        if (confirm('Are you sure you want to delete this item?')) {
-            $.ajax({
-                url: '../database/gallery_upload.php',
-                type: 'POST',
-                data: {
-                    action: 'delete_item',
-                    id: id,
-                    type: type
-                },
-                success: function (response) {
-                    try {
-                        var data = JSON.parse(response);
-                        if (data.success) {
-                            listItem.fadeOut(300, function () {
-                                $(this).remove();
-                            });
-                        } else {
-                            alert('Error: ' + data.message);
-                        }
-                    } catch (e) {
-                        alert('Error processing response');
-                    }
-                },
-                error: function () {
-                    alert('Error submitting request');
-                }
-            });
-        }
-    });
+    // For images (if same API used or different endpoint)
+    handleDelete('.delete-overlay');
 
 
     const types = ['image', 'video'];
@@ -445,6 +478,53 @@ $(document).ready(function () {
 
 
 /// FUNCTIONS STARTS FROM HERE
+function handleDelete(buttonClass) {
+    $(document).on('click', buttonClass + ' button', function (e) {        
+        const overlay = $(this).parent();
+        const id = overlay.data('id');
+        const type = overlay.data('type');
+        const listItem = overlay.closest('li');
+
+        console.log(id, type);
+
+        if (!id || !type) {
+            alert('Invalid delete request.');
+            return;
+        }
+
+        if (confirm('Are you sure you want to delete this item?')) {
+            $.ajax({
+                url: "./database/delete_upload.php",
+                type: 'POST',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify({
+                    upload_id: id,
+                    type: type,
+                    delete_type: 'gallery'
+                }),
+                success: function (response) {
+                    console.log(response);
+                    if (response.success) {
+                        listItem.fadeOut(300, function () {
+                            $(this).remove();
+                        });
+                    } else {
+                        let errorMsg = response.error || 'Unknown error';
+                        if (response.file_delete_error) {
+                            errorMsg += '\nFile deletion failed: ' + response.file_delete_error;
+                        }
+                        alert('Delete failed: ' + errorMsg);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Request failed: ' + error);
+                }
+            });
+        }
+    });
+}
+
 
 
 // Function to clear all fields with class 'editable-field' within a specific form

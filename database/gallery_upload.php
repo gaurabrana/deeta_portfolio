@@ -45,7 +45,7 @@ try {
     if (!empty($_FILES['imageUpload'])) {
         handleImageUpload($conn, $_FILES['imageUpload'], $allowedImageTypes, $imageDir, $caption, $section_id, $response);
     }
-
+    $response['errors'][] = 'Invalid YouTube URL.';
     $response['success'] = empty($response['errors']);
 } catch (Exception $e) {
     $response['errors'][] = 'Server error: ' . $e->getMessage();

@@ -150,7 +150,9 @@
 .video-gallery-container ul li {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .video-gallery-container ul li a {
@@ -181,20 +183,29 @@
     position: relative;
 }
 
+.gallery-container li.position-relative a {
+    display: block;
+    z-index: 1;
+    position: relative;
+}
+
 /* Delete button overlay */
 .delete-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    top: 5px;
+    right: 15px;    
+    padding: 4px;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    pointer-events: auto;
+    /* ensure it catches clicks */
 }
+
 
 .gallery-container li:hover .delete-overlay,
 .video-gallery-container li:hover .delete-overlay {
@@ -203,4 +214,22 @@
 
 .accordion-form-container {
     padding: 0rem 4rem 0rem 4rem;
+}
+
+.video-delete-overlay {
+    z-index: 10;
+    background: transparent;
+    visibility: hidden;
+    height: 20px;
+
+}
+
+.video-delete-overlay button {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+}
+
+/* Show the delete button on hover */
+.video-gallery-container ul li:hover .video-delete-overlay {
+    visibility: visible;
 }
