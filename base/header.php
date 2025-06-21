@@ -175,7 +175,7 @@ include('database/connect.php');
                     <li class="nav-item mx-2 <?php echo $current_page == 'research.php' ? 'active-link' : ''; ?>">
                         <a class="nav-link" href="research.php">Research</a>
                     </li>
-                    <li class="nav-item mx-2 <?php echo $current_page == 'research.php' ? 'active-link' : ''; ?>">
+                    <li class="nav-item mx-2 <?php echo $current_page == 'moment_of_truth.php' ? 'active-link' : ''; ?>">
                         <a class="nav-link" href="moment_of_truth.php">Moment Of Truth</a>
                     </li>
                     <li
@@ -185,14 +185,14 @@ include('database/connect.php');
                         <ul class="dropdown-menu">
                             <!-- Giving Back to My School -->
                             <li>
-                                <a class="dropdown-item" href="givingback.php#giving_back_to_school">
+                                <a class="dropdown-item" href="givingback.php#giving_back_to_my_school">
                                     Giving Back to My School
                                 </a>
                             </li>
 
                             <!-- Giving Back to My Community -->
                             <li>
-                                <a class="dropdown-item" href="givingback.php#giving_back_to_community">
+                                <a class="dropdown-item" href="givingback.php#giving_back_to_my_community">
                                     Giving Back to My Community
                                 </a>
                             </li>
