@@ -363,7 +363,7 @@ function getGalleryItems($conn, $type = 'image')
             // For images, path is the full URL to the image
             $items[] = [
                 'id' => $row['upload_id'],
-                'url' => $row['path'],
+                'path' => $row['path'],
                 'thumbnail' => $row['path'], // Assuming same image for thumbnail
                 'caption' => $row['caption']
             ];
@@ -395,7 +395,7 @@ function generateGalleryItems($conn, $type = 'image')
                 $url = htmlspecialchars($item['path']);
 
                 echo <<<HTML
-                <li class="col-md-4 col-sm-6 mb-4 position-relative">
+                <li>
                     <a href="{$url}" data-fancybox="video-gallery">
                         <img src="https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg" 
                             class="img-fluid" alt="YouTube video thumbnail">
@@ -409,7 +409,7 @@ function generateGalleryItems($conn, $type = 'image')
                 $videoPath = htmlspecialchars($item['path']);                
 
                 echo <<<HTML
-                <li class="col-md-4 col-sm-6 mb-4 position-relative">
+                <li>
                     <a href="assets/images/gallery_uploads/video/{$videoPath}" data-fancybox="video-gallery">
                         <video class="img-fluid" controls>
                             <source src="assets/images/gallery_uploads/video/{$videoPath}" type="video/mp4">
@@ -425,7 +425,7 @@ function generateGalleryItems($conn, $type = 'image')
             $imagePath = htmlspecialchars($item['path']);            
 
             echo <<<HTML
-            <li class="col-md-4 col-sm-6 mb-4 position-relative">
+            <li class="position-relative">
                 <a href="assets/images/gallery_uploads/image/{$imagePath}" data-fancybox="gallery" 
                     data-caption="{$caption}">
                     <figure>

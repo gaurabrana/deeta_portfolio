@@ -19,18 +19,18 @@
             <center class="gallery-text-container">
                 <h4>Gallery Photos </h4>
             </center>
+            <div class="accordion-form-container">
             <?php
             $section_id = getSectionId($conn, 'image');
             // Display the form and gallery
             echo generateGalleryAccordionForm($section_id, 'image');
             ?>
-            <div class="gallery-container">
-                <ul>
-                    <?php
-                    echo generateGalleryItems($conn, 'image');
-                    ?>
-                </ul>
+
             </div>
+
+            <?php
+            echo generateGalleryItems($conn, 'image');
+            ?>
         </div>
     </div>
     <?php include("base/footer.php"); ?>
