@@ -30,7 +30,7 @@ function handleMediaUpload()
             }
 
             // Update caption/position only, no file upload
-            updateUpload($sectionId, $existingUpload['path'], $input['caption'], $existingUpload['media_type'], $input['position']);
+            updateUpload( $existingUpload['path'], $input['caption'], $existingUpload['media_type'], $input['position'], $input['upload_id']);
 
             // Prepare success response with existing file info
             $output = prepareSuccessResponse($output, [
