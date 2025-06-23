@@ -67,6 +67,7 @@ $(document).ready(function () {
             const file = this.files[0];
             const previewId = this.dataset.preview;
             const previewContainer = document.getElementById(previewId);
+            console.log(previewContainer);
             previewContainer.innerHTML = '';
 
             if (!file) return;
@@ -86,18 +87,19 @@ $(document).ready(function () {
         });
     });
 
-    document.querySelectorAll('.media-upload-form').forEach(form => {
-        form.addEventListener('submit', function (e) {
+    document.body.addEventListener('submit', function (e) {
+        if (e.target && e.target.matches('.media-upload-form')) {
             e.preventDefault();
 
-            const formId = this.id;
-            const fileInput = this.querySelector('input[type="file"]');
+            const form = e.target; // Correct form reference
+            const formId = form.id;
+            const fileInput = form.querySelector('input[type="file"]');
             const previewId = fileInput.dataset.preview;
             const statusId = fileInput.dataset.status;
             const statusBox = document.getElementById(statusId);
-            const deleteButton = this.querySelector('.delete-media-btn'); // Single button
+            const deleteButton = form.querySelector('.delete-media-btn'); // Single button
 
-            const formData = new FormData(this);
+            const formData = new FormData(form);
 
             fetch('./database/upload.php', {
                 method: 'POST',
@@ -198,7 +200,7 @@ $(document).ready(function () {
                         err.response.text().then(text => console.error('Server response:', text));
                     }
                 });
-        });
+        }
     });
 
     // Handle image gallery form submission    
