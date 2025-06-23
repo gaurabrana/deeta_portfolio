@@ -248,10 +248,10 @@ HTML;
     echo <<<HTML
     <div id="media-preview-container-$uploadId" class="uploaded-asset-container">
         <div class="row justify-content-center align-items-center mb-4">
-            <div class="col-lg-6 col-md-12 {$position}">
+            <div class="col-lg-8 col-md-12 {$position}">
                 <p class="paragraph text-justify mb-3">{$caption}</p>
             </div>
-            <div class="col-lg-6 {$inversePosition} image-wrapper">
+            <div class="col-lg-4 {$inversePosition} image-wrapper d-flex">
                 {$mediaHtml}
             </div>            
         </div>
