@@ -15,8 +15,7 @@
     <div class="preloader" id="preloader">
         <img src="assets/images/preloader.gif" alt="Loading..." />
     </div>
-    <!-- Header Section -->
-
+    <!-- Header Section -->    
 
     <div class="container-fluid content-section">
         <div class="all-contents">

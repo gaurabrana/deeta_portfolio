@@ -36,7 +36,7 @@ html {
   font-size: 1.2em;
   color: var(--dark-color);
   text-align: center;
-  margin-bottom: 0.5rem;  
+  margin-bottom: 0.5rem;
   /* Medium weight */
 }
 
@@ -83,45 +83,57 @@ html {
 
 @media (min-width: 768px) {
   .about-nav-item:hover .dropdown-menu {
-      display: block;
+    display: block;
   }
+
   .about-nav-item .dropdown-menu {
-      margin-top: 0; /* Prevents offset issues */
+    margin-top: 0;
+    /* Prevents offset issues */
   }
 }
 
 .about-nav-item .dropdown-menu {
   text-transform: capitalize;
-  background-color: #fff; /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border */
-  border-radius: 0.5rem; /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  padding: 0.5rem; /* Padding around items */
-  margin-top: -5px; /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth animations */    
-  z-index: 1050; /* Ensure it appears above other content */
+  background-color: #fff;
+  /* Background color */
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* Subtle border */
+  border-radius: 0.5rem;
+  /* Rounded corners */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  /* Soft shadow */
+  padding: 0.5rem;
+  /* Padding around items */
+  margin-top: -5px;
+  /* Reduce gap between button and dropdown */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  /* Smooth animations */
+  z-index: 1050;
+  /* Ensure it appears above other content */
 }
 
 /* Hover effect for dropdown items */
 .about-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color); /* Use primary color for hover */
-  color: #fff; /* White text on hover */
+  background-color: var(--primary-color);
+  /* Use primary color for hover */
+  color: #fff;
+  /* White text on hover */
 }
 
 
 /* Submenu styling */
-.about-nav-item .dropdown-submenu > .dropdown-menu {
+.about-nav-item .dropdown-submenu>.dropdown-menu {
   display: none;
   top: 0;
   left: 100%;
   margin-top: -0.3rem;
 }
 
-.about-nav-item .dropdown-submenu:hover > .dropdown-menu {
+.about-nav-item .dropdown-submenu:hover>.dropdown-menu {
   display: block;
 }
 
-.dropend .dropdown-toggle::after{
+.dropend .dropdown-toggle::after {
   margin-left: 1.1em;
 }
 
@@ -135,29 +147,41 @@ html {
 
 @media (min-width: 768px) {
   .gallery-nav-item:hover .dropdown-menu {
-      display: block;
+    display: block;
   }
+
   .gallery-nav-item .dropdown-menu {
-      margin-top: 0; /* Prevents offset issues */
+    margin-top: 0;
+    /* Prevents offset issues */
   }
 }
 
 .gallery-nav-item .dropdown-menu {
   text-transform: capitalize;
-  background-color: #fff; /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border */
-  border-radius: 0.5rem; /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  padding: 0.5rem; /* Padding around items */
-  margin-top: -5px; /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth animations */    
-  z-index: 1050; /* Ensure it appears above other content */
+  background-color: #fff;
+  /* Background color */
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* Subtle border */
+  border-radius: 0.5rem;
+  /* Rounded corners */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  /* Soft shadow */
+  padding: 0.5rem;
+  /* Padding around items */
+  margin-top: -5px;
+  /* Reduce gap between button and dropdown */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  /* Smooth animations */
+  z-index: 1050;
+  /* Ensure it appears above other content */
 }
 
 /* Hover effect for dropdown items */
 .gallery-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color); /* Use primary color for hover */
-  color: #fff; /* White text on hover */
+  background-color: var(--primary-color);
+  /* Use primary color for hover */
+  color: #fff;
+  /* White text on hover */
 }
 
 @media (max-width: 550px) {
@@ -169,29 +193,41 @@ html {
 
 @media (min-width: 768px) {
   .school-nav-item:hover .dropdown-menu {
-      display: block;
+    display: block;
   }
+
   .school-nav-item .dropdown-menu {
-      margin-top: 0; /* Prevents offset issues */
+    margin-top: 0;
+    /* Prevents offset issues */
   }
 }
 
 .school-nav-item .dropdown-menu {
   text-transform: capitalize;
-  background-color: #fff; /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border */
-  border-radius: 0.5rem; /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  padding: 0.5rem; /* Padding around items */
-  margin-top: -5px; /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth animations */    
-  z-index: 1050; /* Ensure it appears above other content */
+  background-color: #fff;
+  /* Background color */
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* Subtle border */
+  border-radius: 0.5rem;
+  /* Rounded corners */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  /* Soft shadow */
+  padding: 0.5rem;
+  /* Padding around items */
+  margin-top: -5px;
+  /* Reduce gap between button and dropdown */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  /* Smooth animations */
+  z-index: 1050;
+  /* Ensure it appears above other content */
 }
 
 /* Hover effect for dropdown items */
 .school-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color); /* Use primary color for hover */
-  color: #fff; /* White text on hover */
+  background-color: var(--primary-color);
+  /* Use primary color for hover */
+  color: #fff;
+  /* White text on hover */
 }
 
 @media (max-width: 550px) {
@@ -204,29 +240,41 @@ html {
 
 @media (min-width: 768px) {
   .sports-nav-item:hover .dropdown-menu {
-      display: block;
+    display: block;
   }
+
   .sports-nav-item .dropdown-menu {
-      margin-top: 0; /* Prevents offset issues */
+    margin-top: 0;
+    /* Prevents offset issues */
   }
 }
 
 .sports-nav-item .dropdown-menu {
   text-transform: capitalize;
-  background-color: #fff; /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border */
-  border-radius: 0.5rem; /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  padding: 0.5rem; /* Padding around items */
-  margin-top: -5px; /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth animations */    
-  z-index: 1050; /* Ensure it appears above other content */
+  background-color: #fff;
+  /* Background color */
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* Subtle border */
+  border-radius: 0.5rem;
+  /* Rounded corners */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  /* Soft shadow */
+  padding: 0.5rem;
+  /* Padding around items */
+  margin-top: -5px;
+  /* Reduce gap between button and dropdown */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  /* Smooth animations */
+  z-index: 1050;
+  /* Ensure it appears above other content */
 }
 
 /* Hover effect for dropdown items */
 .sports-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color); /* Use primary color for hover */
-  color: #fff; /* White text on hover */
+  background-color: var(--primary-color);
+  /* Use primary color for hover */
+  color: #fff;
+  /* White text on hover */
 }
 
 @media (max-width: 550px) {
@@ -239,29 +287,41 @@ html {
 
 @media (min-width: 768px) {
   .scouting-nav-item:hover .dropdown-menu {
-      display: block;
+    display: block;
   }
+
   .scouting-nav-item .dropdown-menu {
-      margin-top: 0; /* Prevents offset issues */
+    margin-top: 0;
+    /* Prevents offset issues */
   }
 }
 
 .scouting-nav-item .dropdown-menu {
   text-transform: capitalize;
-  background-color: #fff; /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border */
-  border-radius: 0.5rem; /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  padding: 0.5rem; /* Padding around items */
-  margin-top: -5px; /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth animations */    
-  z-index: 1050; /* Ensure it appears above other content */
+  background-color: #fff;
+  /* Background color */
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* Subtle border */
+  border-radius: 0.5rem;
+  /* Rounded corners */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  /* Soft shadow */
+  padding: 0.5rem;
+  /* Padding around items */
+  margin-top: -5px;
+  /* Reduce gap between button and dropdown */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  /* Smooth animations */
+  z-index: 1050;
+  /* Ensure it appears above other content */
 }
 
 /* Hover effect for dropdown items */
 .scouting-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color); /* Use primary color for hover */
-  color: #fff; /* White text on hover */
+  background-color: var(--primary-color);
+  /* Use primary color for hover */
+  color: #fff;
+  /* White text on hover */
 }
 
 @media (max-width: 550px) {
@@ -274,29 +334,41 @@ html {
 
 @media (min-width: 768px) {
   .givingback-nav-item:hover .dropdown-menu {
-      display: block;
+    display: block;
   }
+
   .givingback-nav-item .dropdown-menu {
-      margin-top: 0; /* Prevents offset issues */
+    margin-top: 0;
+    /* Prevents offset issues */
   }
 }
 
 .givingback-nav-item .dropdown-menu {
   text-transform: capitalize;
-  background-color: #fff; /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border */
-  border-radius: 0.5rem; /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
-  padding: 0.5rem; /* Padding around items */
-  margin-top: -5px; /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth animations */    
-  z-index: 1050; /* Ensure it appears above other content */
+  background-color: #fff;
+  /* Background color */
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* Subtle border */
+  border-radius: 0.5rem;
+  /* Rounded corners */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  /* Soft shadow */
+  padding: 0.5rem;
+  /* Padding around items */
+  margin-top: -5px;
+  /* Reduce gap between button and dropdown */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  /* Smooth animations */
+  z-index: 1050;
+  /* Ensure it appears above other content */
 }
 
 /* Hover effect for dropdown items */
 .givingback-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color); /* Use primary color for hover */
-  color: #fff; /* White text on hover */
+  background-color: var(--primary-color);
+  /* Use primary color for hover */
+  color: #fff;
+  /* White text on hover */
 }
 
 @media (max-width: 550px) {
@@ -528,10 +600,6 @@ body {
 header {
   background-color: transparent;
 }
-
-
-
-
 
 
 /* OUR SERVICES PAGE STYLING */
@@ -1140,4 +1208,53 @@ section {
 
 .text-justify {
   text-align: justify;
+}
+
+.hidden-delete-button {
+  display: none;
+}
+
+.visible-delete-button {
+  display: inline-block;
+}
+
+.hide-empty-asset {
+  display: none;
+}
+
+.uploaded-asset-container {
+  /* Layout */
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+
+  /* Added subtle rounding */
+  padding: 10px;
+  margin: 8px 0;
+  /* Added vertical margin */
+  background-color: #fff;
+  /* Explicit white background */
+
+  /* Typography */
+  font-family: inherit;
+  /* Better inheritance */
+  color: #333;
+  /* Better contrast */
+
+  /* Animation */
+  transition: all 0.3s ease;
+  /* Smooth transitions for hover effects */
+}
+
+/* Optional hover state */
+.uploaded-asset-container:hover {
+  border-color: #cc0000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus state for accessibility */
+.uploaded-asset-container:focus-within {
+  outline: 2px solid #0066ff;
+  outline-offset: 2px;
 }
