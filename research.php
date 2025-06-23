@@ -39,10 +39,10 @@
 
         </div>
     </div>
-
     <?php
     include("base/footer.php");
     ?>
+ 
 </body>
 
 </html>

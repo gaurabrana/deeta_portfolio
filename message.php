@@ -60,9 +60,9 @@
 
     </div>
 
+
+</body>
     <?php
     include("base/footer.php");
     ?>
-</body>
-
 </html>
