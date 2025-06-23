@@ -7,7 +7,6 @@ function renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpl
     $formId = "mediaUploadForm-{$pageSlug}-{$sectionSlug}";
     $captionId = "caption-{$pageSlug}-{$sectionSlug}";
     $fileInputId = "media-{$pageSlug}-{$sectionSlug}";
-    $previewId = "media-preview-{$pageSlug}-{$sectionSlug}";
     $positionId = "media-position-{$pageSlug}-{$sectionSlug}";
 
     $existingCaption = htmlspecialchars($existing['caption'] ?? '');
@@ -17,6 +16,7 @@ function renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpl
     $existingId = $existing['upload_id'] ?? '';
     $isEdit = !empty($existing);
     $statusId = $isEdit ? "upload-status-{$pageSlug}-{$sectionSlug}-{$existingId}" : "upload-status-{$pageSlug}-{$sectionSlug}";
+    $previewId = $isEdit ? "media-preview-{$pageSlug}-{$sectionSlug}-{$existingId}" : "media-preview-{$pageSlug}-{$sectionSlug}";
 
     $leftSelected = ($existingPosition === 'left') ? 'selected' : '';
     $rightSelected = ($existingPosition === 'right') ? 'selected' : '';
@@ -86,13 +86,12 @@ HTML;
 
     if ($isEdit) {
         $delete_button_class = "visible-delete-button";
-    } else {
-        $delete_button_class = "hidden-delete-button";
-    }
-    echo <<<HTML
+        echo <<<HTML
                 <button type="button" class="btn btn-danger ms-2 delete-media-btn $delete_button_class" data-upload-id="$existingId">Delete</button>
                 <div class="mt-2" id="delete-info-$existingId"></div>
 HTML;
+    }
+
 
     echo <<<HTML
                 <div class="mt-2" id="$statusId"></div>
@@ -119,7 +118,7 @@ function renderMediaSection($conn, $pageSlug, $sectionId, $sectionSlug, $section
     $stmt->execute();
     $result = $stmt->get_result();
     $uploads = $result->fetch_all(MYSQLI_ASSOC);  // fetch all rows at once    
-    $isAdminEditing = true; // this will flag whether to show editing options or not
+    $isAdminEditing = (isset($_SESSION) && isset($_SESSION['logged_in'])); // this will flag whether to show editing options or not
 
 
     echo <<<HTML

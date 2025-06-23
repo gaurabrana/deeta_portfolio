@@ -1,5 +1,6 @@
 $(document).ready(function () {
-    $('.delete-media-btn').on('click', function () {
+    $(document).on('click', '.delete-media-btn', function () {
+        console.log("clicked");
         const uploadId = $(this).data('upload-id');
         const $button = $(this);
         const statusBox = document.getElementById("delete-info-" + uploadId);
@@ -487,7 +488,7 @@ $(document).ready(function () {
             data: formData,
             contentType: false,
             processData: false,
-            success: function (data) {                
+            success: function (data) {
                 try {
                     if (data.success) {
                         $('#videoGalleryFormResponse').html(
@@ -552,11 +553,19 @@ $(document).ready(function () {
                 const files = e.target.files;
                 let errorMessages = [];
                 const maxSizeMB = 40;
+                const maxFiles = 10;
+
+                // ✅ Only check file count if type is image
+                if (type === 'image' && files.length > maxFiles) {
+                    errorMessages.push(`You can upload a maximum of ${maxFiles} images.`);
+                }
 
                 $.each(files, function (i, file) {
-                    const fileSizeMB = file.size / (1024 * 1024);
+                    // ✅ Skip remaining files if type is image and over limit
+                    if (type === 'image' && i >= maxFiles) return false;
 
-                    if (type === 'video' && fileSizeMB > maxSizeMB) {
+                    const fileSizeMB = file.size / (1024 * 1024);
+                    if (fileSizeMB > maxSizeMB) {
                         errorMessages.push(`${file.name} exceeds ${maxSizeMB}MB`);
                         return; // Skip preview for this file
                     }
@@ -597,6 +606,7 @@ $(document).ready(function () {
             });
         }
     });
+
 });
 
 

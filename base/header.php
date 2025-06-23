@@ -19,9 +19,6 @@ include('database/connect.php');
     <!-- Android Chrome Icons -->
     <link rel="icon" href="assets/images/icons/android-chrome-192x192.png" sizes="192x192" type="image/png">
     <link rel="icon" href="assets/images/icons/android-chrome-512x512.png" sizes="512x512" type="image/png">
-
-    <!-- Manifest File for Progressive Web Apps -->
-    <link rel="manifest" href="assets/images/icons/site.webmanifest">
 </head>
 
 <!-- Font Awesome -->
@@ -175,7 +172,8 @@ include('database/connect.php');
                     <li class="nav-item mx-2 <?php echo $current_page == 'research.php' ? 'active-link' : ''; ?>">
                         <a class="nav-link" href="research.php">Research</a>
                     </li>
-                    <li class="nav-item mx-2 <?php echo $current_page == 'moment_of_truth.php' ? 'active-link' : ''; ?>">
+                    <li
+                        class="nav-item mx-2 <?php echo $current_page == 'moment_of_truth.php' ? 'active-link' : ''; ?>">
                         <a class="nav-link" href="moment_of_truth.php">Moment Of Truth</a>
                     </li>
                     <li
@@ -208,6 +206,15 @@ include('database/connect.php');
                             <li><a class="dropdown-item" href="gallery_video.php">Videos</a></li>
                         </ul>
                     </li>
+                    <?php
+                    if (isset($_SESSION) && isset($_SESSION['logged_in'])) {
+                        echo <<<HTML
+                        <li class="nav-item mx-2">
+                            <a class="nav-link" href="database/admin_logout.php">Logout</a>
+                        </li>
+                    HTML;
+                    }
+                    ?>
             </div>
         </div>
     </div>

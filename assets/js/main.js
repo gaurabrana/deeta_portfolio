@@ -4,8 +4,6 @@ $(window).on('load', function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     AOS.init();
-    const currentYear = new Date().getFullYear();
-    document.getElementById("current-year").textContent = currentYear;
 
     document.addEventListener('DOMContentLoaded', function () {
         function handleDropdown(navItemClass) {
@@ -145,6 +143,69 @@ document.addEventListener("DOMContentLoaded", function () {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         renderPdfPreview(pdfPath);
     }
+
+
+    $(document).ready(function () {
+        $('#login-form').on('submit', function (e) {
+            e.preventDefault(); // Prevent actual form submission
+
+            const $form = $(this);
+            const $status = $('#loginStatus');
+
+            $status
+                .removeClass('text-success text-danger')
+                .text('Logging in...')
+                .show();
+
+            $.ajax({
+                url: "./database/admin_login.php",
+                type: 'POST',
+                data: $form.serialize(),
+                success: function (response) {
+                    let res;
+
+                    // Try to parse JSON safely
+                    try {
+                        res = (typeof response === 'object') ? response : JSON.parse(response);
+                    } catch (e) {
+                        // Parsing failed, fallback error
+                        $status
+                            .removeClass('text-success')
+                            .addClass('text-danger')
+                            .text('Unexpected server response.');
+                        return;
+                    }
+
+                    if (res.status === 'success') {
+                        $status
+                            .removeClass('text-danger')
+                            .addClass('text-success')
+                            .text(res.message + ' Redirecting...');
+
+                        setTimeout(() => {
+                            window.location.href = 'about_me.php';
+                        }, 1000);
+                    } else if (res.status === 'error') {
+                        $status
+                            .removeClass('text-success')
+                            .addClass('text-danger')
+                            .text(res.message);
+                    } else {
+                        $status
+                            .removeClass('text-success')
+                            .addClass('text-danger')
+                            .text('Unknown response status.');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $status
+                        .removeClass('text-success')
+                        .addClass('text-danger')
+                        .text('An error occurred: ' + (error || 'Please try again.'));
+                }
+            });
+        });
+    });
 });
 
 

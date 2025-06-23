@@ -23,7 +23,10 @@
             <?php
             $section_id = getSectionId($conn, 'image');
             // Display the form and gallery
-            echo generateGalleryAccordionForm($section_id, 'image');
+            $isAdminEditing = (isset($_SESSION) && isset($_SESSION['logged_in'])); // this will flag whether to show editing options or not
+            if($isAdminEditing){
+                echo generateGalleryAccordionForm($section_id, 'image');
+            }
             ?>
 
             </div>
