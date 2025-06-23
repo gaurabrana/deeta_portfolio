@@ -149,7 +149,7 @@ HTML;
         if ($pageSlug == 'about_me' && $sectionSlug == 'resume') {
             $isEdit = !empty($uploads);
             $previewId = "resume-media-preview";
-            $statusId = 'resume-upload-status';            
+            $statusId = 'resume-upload-status';
             $uploadId = $isEdit ? $uploads[0]['upload_id'] : '';
             echo <<<HTML
     <form id="resumeUploadForm" enctype="multipart/form-data" method="post">
@@ -167,7 +167,7 @@ HTML;
             if ($isEdit) {
 
                 echo '<button type="submit" class="btn btn-primary">Update</button>
-                <button type="button" id="remove-upload-resume-'.$uploadId.'" class="btn btn-danger delete-resume-btn visible-delete-button">Delete Existing</button>';
+                <button type="button" id="remove-upload-resume-' . $uploadId . '" class="btn btn-danger delete-resume-btn visible-delete-button">Delete Existing</button>';
             } else {
                 echo '<button type="submit" class="btn btn-primary">Upload</button>';
             }
@@ -209,7 +209,7 @@ function renderSingleMediaItem($sectionId, $existingUpload, $pageSlug = null, $s
     $caption = htmlspecialchars($existingUpload['caption']);
     $position = ($existingUpload['position'] === 'right') ? 'order-lg-1' : 'order-lg-2';
     $inversePosition = ($existingUpload['position'] === 'right') ? 'order-lg-2' : 'order-lg-1';
-    
+
     if ($existingUpload['media_type'] === 'pdf') {
         $path = "assets/images/uploads/{$mediaPath}";
 
@@ -354,7 +354,8 @@ function generateGalleryAccordionForm($section_id, $type = 'image')
                             <div id="uploadSourceContainer" style="display:none;">
                                 <label for="videoUpload" class="form-label">Select Video File</label>
                                 <input class="form-control" type="file" id="videoUpload" name="videoUpload[]" accept="video/*" multiple>
-                                <div class="form-text">Supported formats: MP4, WebM, OGG (Max 50MB)</div>
+                                <div class="form-text">Supported formats: MP4, WebM, OGG (Max 40MB)</div>
+                                <div id="videoUploadError" class="text-danger mt-2"></div>
                             </div>
         HTML;
     } else {
@@ -362,7 +363,7 @@ function generateGalleryAccordionForm($section_id, $type = 'image')
                             <label for="imageUpload" class="form-label">Select Image(s)</label>
                             <input class="form-control" type="file" id="imageUpload" name="imageUpload[]" accept="image/*"
                                 multiple required>
-                            <div class="form-text">Supported formats: JPG, PNG, GIF (Max 10MB each)</div>
+                            <div class="form-text">Supported formats: JPG, PNG, GIF</div>
         HTML;
     }
 
@@ -402,17 +403,17 @@ function getGalleryItems($conn, $type = 'image')
 
     $items = [];
     while ($row = $result->fetch_assoc()) {
-        if ($isVideo) {
-            // Extract YouTube ID from URL
-            parse_str(parse_url($row['path'], PHP_URL_QUERY), $params);
-            $youtubeId = $params['v'] ?? '';
+        if ($isVideo && strpos($row['path'], 'https') !== false) {
+            $youtubeId = $row['caption'];
 
-            $items[] = [
-                'id' => $row['upload_id'],
-                'path' => $row['path'],
-                'youtube_id' => $youtubeId,
-                'caption' => $row['caption']
-            ];
+            if ($youtubeId) {
+                $items[] = [
+                    'id' => $row['upload_id'],
+                    'path' => $row['path'],
+                    'youtube_id' => $youtubeId,
+                    'caption' => $row['caption']
+                ];
+            }
         } else {
             // For images, path is the full URL to the image
             $items[] = [
@@ -433,8 +434,8 @@ function generateGalleryItems($conn, $type = 'image')
     $items = getGalleryItems($conn, $type);
     $isVideo = ($type === 'video');
     $containerClass = $isVideo ? 'video-gallery-container' : 'gallery-container';
-
     echo <<<HTML
+    
     <div class="{$containerClass}">
         <ul class="gallery-list list-unstyled row">
     HTML;
@@ -455,8 +456,7 @@ function generateGalleryItems($conn, $type = 'image')
                         </div>
                     <a href="{$url}" data-fancybox="video-gallery">
                         <img src="https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg" 
-                            class="img-fluid" alt="YouTube video thumbnail">
-                        
+                            class="img-fluid" alt="YouTube video thumbnail">                        
                     </a>
                 </li>
                 HTML;

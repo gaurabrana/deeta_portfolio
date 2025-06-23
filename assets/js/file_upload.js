@@ -461,6 +461,8 @@ $(document).ready(function () {
         });
     });
 
+
+
     // Handle video gallery form submission
     $('#videoGalleryForm').on('submit', function (e) {
         e.preventDefault();
@@ -485,7 +487,7 @@ $(document).ready(function () {
             data: formData,
             contentType: false,
             processData: false,
-            success: function (data) {
+            success: function (data) {                
                 try {
                     if (data.success) {
                         $('#videoGalleryFormResponse').html(
@@ -514,11 +516,20 @@ $(document).ready(function () {
                     );
                 }
             },
-            error: function (error) {
-                $('#videoGalleryFormResponse').html(
-                    '<div class="alert alert-danger">Error submitting form</div>'
-                );
+            error: function (xhr) {
+                const errorText = xhr.responseText;
+
+                if (errorText.includes('exceeds the limit')) {
+                    $('#videoGalleryFormResponse').html(
+                        '<div class="alert alert-danger">Upload failed: File size exceeds server limit (40MB).</div>'
+                    );
+                } else {
+                    $('#videoGalleryFormResponse').html(
+                        '<div class="alert alert-danger">Error submitting form</div>'
+                    );
+                }
             }
+
         });
     });
 
@@ -528,7 +539,7 @@ $(document).ready(function () {
     // For images (if same API used or different endpoint)
     handleDelete('.delete-overlay');
 
-
+    // preview container generate for gallery image and videos
     const types = ['image', 'video'];
     types.forEach(function (type) {
         const formId = (type === 'video') ? 'videoGalleryForm' : 'imageGalleryForm';
@@ -539,8 +550,17 @@ $(document).ready(function () {
             $input.on('change', function (e) {
                 $preview.empty(); // Clear previous previews
                 const files = e.target.files;
+                let errorMessages = [];
+                const maxSizeMB = 40;
 
                 $.each(files, function (i, file) {
+                    const fileSizeMB = file.size / (1024 * 1024);
+
+                    if (type === 'video' && fileSizeMB > maxSizeMB) {
+                        errorMessages.push(`${file.name} exceeds ${maxSizeMB}MB`);
+                        return; // Skip preview for this file
+                    }
+
                     const url = URL.createObjectURL(file);
                     let $media;
 
@@ -561,6 +581,19 @@ $(document).ready(function () {
 
                     $preview.append($media);
                 });
+
+                // Show error message if any
+                const $errorContainer = $('#' + formId + 'Error');
+                if (errorMessages.length > 0) {
+                    if ($errorContainer.length === 0) {
+                        $input.after(`<div id="${formId}Error" class="text-danger mt-2"></div>`);
+                    }
+                    $('#' + formId + 'Error').html(errorMessages.join('<br>'));
+                    $input.val(''); // Clear input
+                    $preview.empty(); // Clear previews since input is reset
+                } else {
+                    $('#' + formId + 'Error').remove(); // Clear previous error if any
+                }
             });
         }
     });

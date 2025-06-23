@@ -214,7 +214,7 @@ function processFileUpload($file, $mediaType, $sectionId, $input)
     if ($existingUpload) {
         updateUpload($filename, $input['caption'], $mediaType, $input['position'], $input['upload_id']);
     } else {
-        $newUploadId = insertUpload($sectionId, $filename, $input['caption'], $mediaType, $input['position']);
+        $newUploadId = insertUploadRecord($sectionId, $filename, $input['caption'], $mediaType, $input['position']);
     }
 
     // Clean up old file if it exists
@@ -290,7 +290,7 @@ function updateUpload($filename, $caption, $mediaType, $position, $uploadId)
 }
 
 // Insert new upload record
-function insertUpload($sectionId, $filename, $caption, $mediaType, $position)
+function insertUploadRecord($sectionId, $filename, $caption, $mediaType, $position)
 {
     global $conn;
 
