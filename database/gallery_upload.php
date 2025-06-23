@@ -12,7 +12,7 @@ try {
     // === Setup ===
     $allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     $allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
-    $maxVideoSize = 50 * 1024 * 1024; // 50MB
+    $maxVideoSize = 40 * 1024 * 1024; // 50MB
 
     $imageDir = '../assets/images/gallery_uploads/image/';
     $videoDir = '../assets/images/gallery_uploads/video/';
@@ -36,16 +36,11 @@ try {
     // === Main Entry Points ===
     if ($videoSource === 'youtube') {
         handleYouTubeUpload($conn, $_POST['videoUrl'] ?? '', $caption, $section_id, $response);
-    }
-
-    if (!empty($_FILES['videoUpload'])) {
+    } else if (!empty($_FILES['videoUpload'])) {
         handleVideoUpload($conn, $_FILES['videoUpload'], $allowedVideoTypes, $maxVideoSize, $videoDir, $caption, $section_id, $response);
-    }
-
-    if (!empty($_FILES['imageUpload'])) {
+    } else if (!empty($_FILES['imageUpload'])) {
         handleImageUpload($conn, $_FILES['imageUpload'], $allowedImageTypes, $imageDir, $caption, $section_id, $response);
     }
-    $response['errors'][] = 'Invalid YouTube URL.';
     $response['success'] = empty($response['errors']);
 } catch (Exception $e) {
     $response['errors'][] = 'Server error: ' . $e->getMessage();
@@ -57,7 +52,7 @@ exit;
 
 /// ========== Functions ==========
 
-function insertUpload($conn, $path, $caption, $position, $mediaType)
+function insertUploadRecord($conn, $path, $caption, $position, $mediaType)
 {
     $stmt = $conn->prepare("INSERT INTO uploads (path, caption, position, media_type) VALUES (?, ?, ?, ?)");
     if (!$stmt) {
@@ -96,17 +91,24 @@ function addUploadResponse(&$response, $upload_id, $path, $caption, $mediaType, 
     ];
 }
 
-function handleYouTubeUpload($conn, $url, $caption, $section_id, &$response)
+function handleYouTubeUpload($conn, $url , $caption, $section_id, &$response)
 {
     if (!preg_match('/(youtu\.be\/|youtube\.com\/(watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/', $url, $matches)) {
         $response['errors'][] = 'Invalid YouTube URL.';
         return;
     }
 
-    // Optionally just store video ID: $url = $matches[3];
-    $upload_id = insertUpload($conn, $url, $caption, 'left', 'youtube');
+    // Extract the video ID (in capturing group 3)
+    $videoId = $matches[3];
+
+    // Store only the video ID instead of full URL or caption if you want:
+    $upload_id = insertUploadRecord($conn, $url, $videoId, 'left', 'video');
+
+    // Link the upload with the section
     linkSectionUpload($conn, $section_id, $upload_id);
-    addUploadResponse($response, $upload_id, $url, $caption, 'youtube', $section_id);
+
+    // Use $videoId in place of $caption when adding response if desired
+    addUploadResponse($response, $upload_id, $videoId, $caption, 'video', $section_id);
 }
 
 function handleVideoUpload($conn, $files, $allowedTypes, $maxSize, $targetDir, $caption, $section_id, &$response)
@@ -136,7 +138,7 @@ function handleVideoUpload($conn, $files, $allowedTypes, $maxSize, $targetDir, $
             continue;
         }
 
-        $upload_id = insertUpload($conn, $filename, $caption, 'left', 'video');
+        $upload_id = insertUploadRecord($conn, $filename, $caption, 'left', 'video');
         linkSectionUpload($conn, $section_id, $upload_id);
         addUploadResponse($response, $upload_id, $filename, $caption, 'video', $section_id);
     }
@@ -161,7 +163,7 @@ function handleImageUpload($conn, $files, $allowedTypes, $targetDir, $caption, $
             continue;
         }
 
-        $upload_id = insertUpload($conn, $filename, $caption, 'left', 'image');
+        $upload_id = insertUploadRecord($conn, $filename, $caption, 'left', 'image');
         linkSectionUpload($conn, $section_id, $upload_id);
         addUploadResponse($response, $upload_id, $filename, $caption, 'image', $section_id);
     }

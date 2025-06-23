@@ -77,26 +77,30 @@ document.addEventListener("DOMContentLoaded", function () {
         $('#youtubeError').hide();
     });
 
-    document.getElementById('resumeFile').addEventListener('change', function (event) {
+    $('#resumeFile').on('change', function (event) {
         const file = event.target.files[0];
-        const previewContainer = document.getElementById('resume-media-preview');
+        const $previewContainer = $('#resume-media-preview');
 
-        previewContainer.innerHTML = ''; // Clear previous preview
+        $previewContainer.empty(); // Clear previous preview
 
         if (file && file.type === 'application/pdf') {
             const fileURL = URL.createObjectURL(file);
-            const embed = document.createElement('embed');
-            embed.src = fileURL;
-            embed.type = 'application/pdf';
-            embed.width = '100%';
-            embed.height = '400px';
-            embed.style.border = '1px solid #ccc';
+            const embed = $('<embed>', {
+                src: fileURL,
+                type: 'application/pdf',
+                width: '100%',
+                height: '400px',
+                css: {
+                    border: '1px solid #ccc'
+                }
+            });
 
-            previewContainer.appendChild(embed);
+            $previewContainer.append(embed);
         } else {
-            previewContainer.innerHTML = '<div class="text-danger">Please select a valid PDF file.</div>';
+            $previewContainer.html('<div class="text-danger">Please select a valid PDF file.</div>');
         }
     });
+
 
     function renderPdfPreview(pdfUrl) {
         // Clear previous preview if any
@@ -132,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Example: get the pdf path from the hidden input and render preview
-    const pdfPathField = document.getElementById('pdfPath');    
+    const pdfPathField = document.getElementById('pdfPath');
     const loadingIndicator = document.getElementById('pdf-loading');
     const previewContainer = document.getElementById('pdf-preview-container');
     const downloadButton = document.getElementById('resume-download-button');
