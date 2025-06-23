@@ -25,7 +25,7 @@
   }
 
   .footer-logo {
-    max-height: 150px;
+    max-height: 125px;
   }
 
   .footer-column {
