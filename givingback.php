@@ -95,13 +95,13 @@
         </div>
 
     </div>    
-</body>
 
-</html>
+    <?php
+    include("base/footer.php");
+    ?>
 
-<?php
-include("base/footer.php");
-?>
+
+
 </body>
 
 </html>
