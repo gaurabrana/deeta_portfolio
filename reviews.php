@@ -223,11 +223,11 @@
 
         </div>
     </div>
-    <?php
-    include("base/footer.php");
-    ?>
+
     <script src="assets/js/review.js"></script>
     <script src="assets/js/swiper-bundle.min.js"></script>
 </body>
-
+    <?php
+    include("base/footer.php");
+    ?>
 </html>

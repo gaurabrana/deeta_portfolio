@@ -12,7 +12,7 @@
 <body>
   <div class="question-container">
     <h1 class="heading-title">Welcome to Deeta's Website</h1>
-    <img src="assets/images/dream_big_logo_green.png" alt="Logo" class="splash-logo">
+    <img src="assets/images/logo.png" alt="Logo" class="splash-logo">
     <header class="text-center">
       <div class="container" style="text-align: justify;">
         <p class="paragraph intro-text py-1 mt-4">

@@ -44,8 +44,8 @@ include('database/connect.php');
         <!-- Logo and Collapse Button (Adjusted for medium screen) -->
         <div class="d-flex justify-content-center w-100 align-items-center position-relative">
             <!-- Centered Logo -->
-            <a class="navbar-brand text-white fs-3 text-center" href="about_us.php">
-                <img src="assets/images/dream_big_logo_green.png" height="100" alt="Dream Big Logo" />
+            <a class="navbar-brand text-white fs-3 text-center" href="about_me.php">
+                <img src="assets/images/logo.png" height="100" alt="Dream Big Logo" />
             </a>
             <!-- Navbar Toggle Button -->
             <button class="navbar-toggler position-absolute end-0" type="button" data-bs-toggle="collapse"
