@@ -14,7 +14,7 @@
     }
 
     include("base/header.php");
- 
+
     ?>
 
     <link href="assets/css/about_us.css" rel="stylesheet" type="text/css" />
@@ -26,7 +26,7 @@
     </div>
     <!-- Header Section -->
 
-    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="container d-flex justify-content-center align-items-center min-vh-100" id="login-container">
         <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%; border-radius: 1rem;">
             <div class="text-center mb-4">
                 <h3 class="fw-bold">Admin Login</h3>
@@ -45,6 +45,10 @@
                     <button type="submit" class="btn btn-primary">Login</button>
                 </div>
                 <div id="loginStatus" class="text-center mb-3 text-danger" style="display: none;"></div>
+                <div class="text-center">
+                    <a href="reset_password.php#reset-container" class="text-decoration-none small">Forgot Password?</a>
+                </div>
+
             </form>
         </div>
     </div>

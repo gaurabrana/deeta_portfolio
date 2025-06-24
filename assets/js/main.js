@@ -197,6 +197,37 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+
+    $("#reset-password-form").on("submit", function (e) {
+        e.preventDefault();
+
+        const username = $("#username").val();
+        const newPassword = $("#new_password").val();
+        const confirmPassword = $("#confirm_password").val();
+
+        if (newPassword !== confirmPassword) {
+            $("#resetStatus").text("Passwords do not match.").show();
+            return;
+        }
+
+        $.ajax({
+            url: "database/reset_password.php",
+            method: "POST",
+            data: {
+                username: username,
+                new_password: newPassword
+            },
+            success: function (response) {
+                $("#resetStatus").removeClass("text-danger").addClass("text-success").text(response).show();
+                setTimeout(() => {
+                    window.location.href = 'login.php#login-container';
+                }, 1000);
+            },
+            error: function () {
+                $("#resetStatus").removeClass("text-success").addClass("text-danger").text("An error occurred.").show();
+            }
+        });
+    });
 });
 
 
