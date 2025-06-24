@@ -542,4 +542,170 @@ function getSectionId($conn, $type = 'image')
 
     return $row['id'];
 }
+
+function renderNavbar($conn)
+{
+    $current_page = basename($_SERVER['PHP_SELF']);
+
+    $query = "
+        SELECT p.id AS page_id, p.slug AS page_slug, p.title AS page_title, p.page_url,
+               s.slug AS section_slug, s.title AS section_title, s.section_url
+        FROM pages p
+        LEFT JOIN sections s ON p.id = s.page_id
+        WHERE s.visible = 1
+        ORDER BY p.id, s.id
+    ";
+
+    $result = mysqli_query($conn, $query);
+
+    $pages = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $pageId = $row['page_id'];
+        $pages[$pageId]['slug'] = $row['page_slug'];        // e.g. 'sports'
+        $pages[$pageId]['url'] = $row['page_url'];          // e.g. 'sports.php'
+        $pages[$pageId]['title'] = $row['page_title'];
+        if ($row['section_slug']) {
+            $pages[$pageId]['sections'][] = [
+                'slug' => $row['section_slug'],
+                'title' => $row['section_title'],
+                'page_url' => $row['page_url'],
+                'section_url' => $row['section_url']
+            ];
+        }
+    }
+
+    echo <<<HTML
+<div class="navbar-collapse justify-content-center mt-3">
+    <ul class="navbar-nav">
+HTML;
+
+    foreach ($pages as $page) {
+        $pageSlug = $page['slug'];           // e.g. 'sports'
+        $pageUrl = $page['url'];             // e.g. 'sports.php'
+        $pageTitle = htmlspecialchars($page['title']);
+        $navClass = "{$pageSlug}-nav-item";
+        $dropdownClass = "{$pageSlug}-dropdown";
+        $dropdownCommonClass = "nav-item-dropdown";
+        $isActive = ($current_page === basename($pageUrl)) ? 'active-link' : '';
+
+        $sectionCount = isset($page['sections']) ? count($page['sections']) : 0;
+
+        // Case 1: No sections
+        if ($sectionCount === 0) {
+            echo <<<HTML
+        <li class="nav-item mx-2 $navClass $isActive">
+            <a class="nav-link" href="$pageUrl">$pageTitle</a>
+        </li>
+HTML;
+        }
+        // Case 2: One section — direct link to section
+        elseif ($sectionCount === 1) {
+            $section = $page['sections'][0];
+            $href = getSectionUrl($section['slug'], $section['page_url'], $section['section_url']);
+            echo <<<HTML
+        <li class="nav-item mx-2 $navClass $isActive">
+            <a class="nav-link" href="$href">$pageTitle</a>
+        </li>
+HTML;
+        }
+        // Case 3: Multiple sections
+        else {
+            echo <<<HTML
+        <li class="nav-item mx-2 dropdown $dropdownCommonClass $navClass $isActive">
+            <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                $pageTitle
+            </a>
+            <ul class="$dropdownClass dropdown-menu">
+HTML;
+
+            // Special handling for about_me
+            if ($pageUrl === 'about_me.php') {
+                $whoAmISections = [];
+                $otherSections = [];
+
+                foreach ($page['sections'] as $section) {
+                    if ($section['slug'] === 'resume') {
+                        $otherSections[] = $section;
+                    } else {
+                        $whoAmISections[] = $section;
+                    }
+                }
+
+                // Who am I submenu
+                if (!empty($whoAmISections)) {
+                    $parentHref = getSectionUrl('who-am-i', $whoAmISections[0]['page_url'], $whoAmISections[0]['section_url']);
+                    echo <<<HTML
+                <li class="dropdown-submenu position-relative dropend">
+                    <a class="dropdown-item dropdown-toggle" href="$parentHref">Who am I</a>
+                    <ul class="dropdown-menu sub-dropdown">
+HTML;
+                    foreach ($whoAmISections as $section) {
+                        $href = getSectionUrl($section['slug'], $section['page_url'], $section['section_url']);
+                        $title = htmlspecialchars($section['title']);
+                        echo <<<HTML
+                        <li><a class="dropdown-item" href="$href">$title</a></li>
+HTML;
+                    }
+                    echo <<<HTML
+                    </ul>
+                </li>
+HTML;
+                }
+
+                // Other sections like resume
+                foreach ($otherSections as $section) {
+                    $href = getSectionUrl($section['slug'], $section['page_url'], $section['section_url']);
+                    $title = htmlspecialchars($section['title']);
+                    echo <<<HTML
+                <li><a class="dropdown-item" href="$href">$title</a></li>
+HTML;
+                }
+            } else {
+                // Default dropdown list
+                foreach ($page['sections'] as $section) {
+                    $href = getSectionUrl($section['slug'], $section['page_url'], $section['section_url']);
+                    $title = htmlspecialchars($section['title']);
+                    echo <<<HTML
+                <li><a class="dropdown-item" href="$href">$title</a></li>
+HTML;
+                }
+            }
+
+            echo <<<HTML
+            </ul>
+        </li>
+HTML;
+        }
+    }
+
+    // Logout if logged in
+    if (isset($_SESSION['logged_in'])) {
+        echo <<<HTML
+        <li class="nav-item mx-2">
+            <a class="nav-link" href="database/admin_logout.php">Logout</a>
+        </li>
+HTML;
+    }
+
+    echo <<<HTML
+    </ul>
+</div>
+HTML;
+}
+
+
+function getSectionUrl($sectionSlug, $page_url, $section_url)
+{
+    if (!empty($page_url)) {
+        return $page_url . '#' . $sectionSlug;
+    }
+
+    if (!empty($section_url)) {
+        return $section_url;
+    }
+
+    // fallback
+    return 'index.php';
+}
+
 ?>

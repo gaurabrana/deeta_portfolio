@@ -71,7 +71,4 @@
     showSplashScreen();
   </script>
 </body>
-    <?php
-    include("base/footer.php");
-    ?>
 </html>

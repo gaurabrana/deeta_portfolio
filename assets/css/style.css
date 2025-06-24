@@ -81,302 +81,60 @@ html {
 
 
 
+/* Show dropdown on hover for desktops */
 @media (min-width: 768px) {
-  .about-nav-item:hover .dropdown-menu {
+  .nav-item-dropdown:hover > .dropdown-menu {
     display: block;
   }
 
-  .about-nav-item .dropdown-menu {
-    margin-top: 0;
-    /* Prevents offset issues */
+  .nav-item-dropdown > .dropdown-menu {
+    margin-top: 0; /* Prevent offset issues */
   }
 }
 
-.about-nav-item .dropdown-menu {
+/* Dropdown menu shared styles */
+.nav-item-dropdown > .dropdown-menu {
   text-transform: capitalize;
   background-color: #fff;
-  /* Background color */
   border: 1px solid rgba(0, 0, 0, 0.1);
-  /* Subtle border */
   border-radius: 0.5rem;
-  /* Rounded corners */
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  /* Soft shadow */
   padding: 0.5rem;
-  /* Padding around items */
   margin-top: -5px;
-  /* Reduce gap between button and dropdown */
   transition: opacity 0.3s ease, transform 0.3s ease;
-  /* Smooth animations */
   z-index: 1050;
-  /* Ensure it appears above other content */
 }
 
-/* Hover effect for dropdown items */
-.about-nav-item .dropdown-menu .dropdown-item:hover {
+/* Dropdown item hover effect */
+.nav-item-dropdown > .dropdown-menu .dropdown-item:hover {
   background-color: var(--primary-color);
-  /* Use primary color for hover */
   color: #fff;
-  /* White text on hover */
 }
 
-
-/* Submenu styling */
-.about-nav-item .dropdown-submenu>.dropdown-menu {
+/* Submenu (nested dropdown) styling */
+.nav-item-dropdown .dropdown-submenu > .dropdown-menu {
   display: none;
   top: 0;
   left: 100%;
   margin-top: -0.3rem;
 }
 
-.about-nav-item .dropdown-submenu:hover>.dropdown-menu {
+/* Show submenu on hover */
+.nav-item-dropdown .dropdown-submenu:hover > .dropdown-menu {
   display: block;
 }
 
+/* Arrow for dropend submenu */
 .dropend .dropdown-toggle::after {
   margin-left: 1.1em;
 }
 
-
+/* Responsive overflow scroll for dropdown menus on small screens */
 @media (max-width: 550px) {
-  .about-nav-item .dropdown-menu {
-    overflow-x: scroll;
+  .nav-item-dropdown > .dropdown-menu {
+    overflow-x: auto;
   }
 }
-
-
-@media (min-width: 768px) {
-  .gallery-nav-item:hover .dropdown-menu {
-    display: block;
-  }
-
-  .gallery-nav-item .dropdown-menu {
-    margin-top: 0;
-    /* Prevents offset issues */
-  }
-}
-
-.gallery-nav-item .dropdown-menu {
-  text-transform: capitalize;
-  background-color: #fff;
-  /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  /* Subtle border */
-  border-radius: 0.5rem;
-  /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  /* Soft shadow */
-  padding: 0.5rem;
-  /* Padding around items */
-  margin-top: -5px;
-  /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  /* Smooth animations */
-  z-index: 1050;
-  /* Ensure it appears above other content */
-}
-
-/* Hover effect for dropdown items */
-.gallery-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color);
-  /* Use primary color for hover */
-  color: #fff;
-  /* White text on hover */
-}
-
-@media (max-width: 550px) {
-  .gallery-nav-item .dropdown-menu {
-    overflow-x: scroll;
-  }
-}
-
-
-@media (min-width: 768px) {
-  .school-nav-item:hover .dropdown-menu {
-    display: block;
-  }
-
-  .school-nav-item .dropdown-menu {
-    margin-top: 0;
-    /* Prevents offset issues */
-  }
-}
-
-.school-nav-item .dropdown-menu {
-  text-transform: capitalize;
-  background-color: #fff;
-  /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  /* Subtle border */
-  border-radius: 0.5rem;
-  /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  /* Soft shadow */
-  padding: 0.5rem;
-  /* Padding around items */
-  margin-top: -5px;
-  /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  /* Smooth animations */
-  z-index: 1050;
-  /* Ensure it appears above other content */
-}
-
-/* Hover effect for dropdown items */
-.school-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color);
-  /* Use primary color for hover */
-  color: #fff;
-  /* White text on hover */
-}
-
-@media (max-width: 550px) {
-  .school-nav-item .dropdown-menu {
-    overflow-x: scroll;
-  }
-}
-
-/* Sports DropDown Styling  */
-
-@media (min-width: 768px) {
-  .sports-nav-item:hover .dropdown-menu {
-    display: block;
-  }
-
-  .sports-nav-item .dropdown-menu {
-    margin-top: 0;
-    /* Prevents offset issues */
-  }
-}
-
-.sports-nav-item .dropdown-menu {
-  text-transform: capitalize;
-  background-color: #fff;
-  /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  /* Subtle border */
-  border-radius: 0.5rem;
-  /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  /* Soft shadow */
-  padding: 0.5rem;
-  /* Padding around items */
-  margin-top: -5px;
-  /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  /* Smooth animations */
-  z-index: 1050;
-  /* Ensure it appears above other content */
-}
-
-/* Hover effect for dropdown items */
-.sports-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color);
-  /* Use primary color for hover */
-  color: #fff;
-  /* White text on hover */
-}
-
-@media (max-width: 550px) {
-  .sports-nav-item .dropdown-menu {
-    overflow-x: scroll;
-  }
-}
-
-/* scouting DropDown Styling  */
-
-@media (min-width: 768px) {
-  .scouting-nav-item:hover .dropdown-menu {
-    display: block;
-  }
-
-  .scouting-nav-item .dropdown-menu {
-    margin-top: 0;
-    /* Prevents offset issues */
-  }
-}
-
-.scouting-nav-item .dropdown-menu {
-  text-transform: capitalize;
-  background-color: #fff;
-  /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  /* Subtle border */
-  border-radius: 0.5rem;
-  /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  /* Soft shadow */
-  padding: 0.5rem;
-  /* Padding around items */
-  margin-top: -5px;
-  /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  /* Smooth animations */
-  z-index: 1050;
-  /* Ensure it appears above other content */
-}
-
-/* Hover effect for dropdown items */
-.scouting-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color);
-  /* Use primary color for hover */
-  color: #fff;
-  /* White text on hover */
-}
-
-@media (max-width: 550px) {
-  .scouting-nav-item .dropdown-menu {
-    overflow-x: scroll;
-  }
-}
-
-/* givingback DropDown Styling  */
-
-@media (min-width: 768px) {
-  .givingback-nav-item:hover .dropdown-menu {
-    display: block;
-  }
-
-  .givingback-nav-item .dropdown-menu {
-    margin-top: 0;
-    /* Prevents offset issues */
-  }
-}
-
-.givingback-nav-item .dropdown-menu {
-  text-transform: capitalize;
-  background-color: #fff;
-  /* Background color */
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  /* Subtle border */
-  border-radius: 0.5rem;
-  /* Rounded corners */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  /* Soft shadow */
-  padding: 0.5rem;
-  /* Padding around items */
-  margin-top: -5px;
-  /* Reduce gap between button and dropdown */
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  /* Smooth animations */
-  z-index: 1050;
-  /* Ensure it appears above other content */
-}
-
-/* Hover effect for dropdown items */
-.givingback-nav-item .dropdown-menu .dropdown-item:hover {
-  background-color: var(--primary-color);
-  /* Use primary color for hover */
-  color: #fff;
-  /* White text on hover */
-}
-
-@media (max-width: 550px) {
-  .givingback-nav-item .dropdown-menu {
-    overflow-x: scroll;
-  }
-}
-
 
 
 
@@ -866,7 +624,7 @@ header {
 
 
 /* Container for the services nav item */
-.school-nav-item {
+.schools-nav-item {
   display: inline-block;
   position: relative;
 }
