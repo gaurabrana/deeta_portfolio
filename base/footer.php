@@ -104,7 +104,7 @@ function renderFooter($conn)
   <div class="container">
     <div class="row justify-content-between">
       <div class="col-md-3 col-sm-6 footer-column logo-section">
-        <a href="about_me.php">
+        <a href="about_me.php?page=who_am_i">
         <img src="assets/images/logo.png" alt="Deeta Gurung" class="footer-logo mb-3">
         </a>
       </div>

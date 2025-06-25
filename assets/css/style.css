@@ -83,17 +83,18 @@ html {
 
 /* Show dropdown on hover for desktops */
 @media (min-width: 768px) {
-  .nav-item-dropdown:hover > .dropdown-menu {
+  .nav-item-dropdown:hover>.dropdown-menu {
     display: block;
   }
 
-  .nav-item-dropdown > .dropdown-menu {
-    margin-top: 0; /* Prevent offset issues */
+  .nav-item-dropdown>.dropdown-menu {
+    margin-top: 0;
+    /* Prevent offset issues */
   }
 }
 
 /* Dropdown menu shared styles */
-.nav-item-dropdown > .dropdown-menu {
+.nav-item-dropdown>.dropdown-menu {
   text-transform: capitalize;
   background-color: #fff;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -106,13 +107,13 @@ html {
 }
 
 /* Dropdown item hover effect */
-.nav-item-dropdown > .dropdown-menu .dropdown-item:hover {
+.nav-item-dropdown>.dropdown-menu .dropdown-item:hover {
   background-color: var(--primary-color);
   color: #fff;
 }
 
 /* Submenu (nested dropdown) styling */
-.nav-item-dropdown .dropdown-submenu > .dropdown-menu {
+.nav-item-dropdown .dropdown-submenu>.dropdown-menu {
   display: none;
   top: 0;
   left: 100%;
@@ -120,7 +121,7 @@ html {
 }
 
 /* Show submenu on hover */
-.nav-item-dropdown .dropdown-submenu:hover > .dropdown-menu {
+.nav-item-dropdown .dropdown-submenu:hover>.dropdown-menu {
   display: block;
 }
 
@@ -131,7 +132,7 @@ html {
 
 /* Responsive overflow scroll for dropdown menus on small screens */
 @media (max-width: 550px) {
-  .nav-item-dropdown > .dropdown-menu {
+  .nav-item-dropdown>.dropdown-menu {
     overflow-x: auto;
   }
 }
@@ -953,11 +954,24 @@ section {
   }
 }
 
-.image-wrapper img {
+.image-wrapper img,
+.image-wrapper video {
   max-width: 100%;
-  width: 400px;
-  height: auto;
-  transition: transform 0.3s ease;
+  max-height: 300px;
+  /* or adjust as needed */
+  object-fit: cover;
+  /* makes sure content fills the area without distortion */
+  border-radius: 8px;
+  margin: auto;
+}
+
+.image-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  height: 100%;
+  /* helps align vertically */
 }
 
 .image-wrapper img:hover {
@@ -1003,11 +1017,12 @@ section {
   /* Animation */
   transition: all 0.3s ease;
   /* Smooth transitions for hover effects */
+
+
 }
 
-/* Optional hover state */
-.uploaded-asset-container:hover {
-  border-color: #cc0000;
+
+.card {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -1015,4 +1030,30 @@ section {
 .uploaded-asset-container:focus-within {
   outline: 2px solid #0066ff;
   outline-offset: 2px;
+}
+
+.content-container {
+  background-color: #f8f9fa;
+  /* light gray for contrast */
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+  /* subtle border */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  /* light shadow */
+}
+
+.content-container form {
+  margin: 0;
+}
+
+.content-container h5,
+.content-container label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.content-container+.content-container {
+  margin-top: 2rem;
 }

@@ -32,16 +32,13 @@ include('database/connect.php');
 <!-- Bootstrap Icon Style -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="assets/css/aos.css">
-<link href="assets/css/privacy.css" type="text/css" rel="stylesheet" />
-<link href="assets/css/terms_and_conditions.css" type="text/css" rel="stylesheet" />
-<link href="assets/css/contact_us.css" type="text/css" rel="stylesheet" />
 
 <nav class="navbar navbar-light bg-green py-3 navbar-expand-md">
     <div class="container flex-column">
         <!-- Logo and Collapse Button (Adjusted for medium screen) -->
         <div class="d-flex justify-content-center w-100 align-items-center position-relative">
             <!-- Centered Logo -->
-            <a class="navbar-brand text-white fs-3 text-center" href="about_me.php">
+            <a class="navbar-brand text-white fs-3 text-center" href="about_me.php?page=who_am_i">
                 <img src="assets/images/logo.png" height="100" alt="Dream Big Logo" />
             </a>
             <!-- Navbar Toggle Button -->

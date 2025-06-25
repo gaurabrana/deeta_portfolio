@@ -17,5 +17,5 @@ if (ini_get("session.use_cookies")) {
 session_destroy();
 
 // Redirect to login page (change as needed)
-header("Location: ../about_me.php");
+header("Location: ../about_me.php?page=who_am_i");
 exit;

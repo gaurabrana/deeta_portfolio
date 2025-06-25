@@ -1,6 +1,6 @@
 <?php
-
-function renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpload = null)
+require_once 'model/section_page.php';
+function buildAddContentFormForSection($pageSlug, $sectionSlug, $sectionId, $existingUpload = null)
 {
     $existing = $existingUpload ?? [];
 
@@ -21,6 +21,8 @@ function renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpl
     $leftSelected = ($existingPosition === 'left') ? 'selected' : '';
     $rightSelected = ($existingPosition === 'right') ? 'selected' : '';
     $buttonLabel = $isEdit ? 'Update' : 'Upload';
+
+    $isAboutPage = $pageSlug === 'about_me';
 
     $previewHtml = '';
     if ($existingMediaPath) {
@@ -43,12 +45,33 @@ function renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpl
             <input type="hidden" name="upload_id" value="$existingId">
             <input type="hidden" id="upload-form-container-$sectionId" name="form_id" value="$formId">
 
-            <!-- Caption -->
-            <div class="col-12">
-                <label for="$captionId" class="form-label">Text</label>
-                <textarea name="caption" required id="$captionId" class="form-control editable-field" rows="2" placeholder="Write some description...">$existingCaption</textarea>
-            </div>
+    HTML;
 
+    echo <<<HTML
+    <!-- Caption/Input Row -->
+HTML;
+
+    if ($isAboutPage) {
+        echo <<<HTML
+    <div class="col-md-6">
+        <label for="heading-$captionId" class="form-label">Heading</label>
+        <input type="text" name="heading" id="heading-$captionId" class="form-control editable-field" placeholder="Section heading...">
+    </div>
+    <div class="col-md-6">
+        <label for="$captionId" class="form-label">Text</label>
+        <textarea name="caption" required id="$captionId" class="form-control editable-field" rows="2" placeholder="Write some description...">$existingCaption</textarea>
+    </div>
+HTML;
+    } else {
+        echo <<<HTML
+    <div class="col-12">
+        <label for="$captionId" class="form-label">Text</label>
+        <textarea name="caption" required id="$captionId" class="form-control editable-field" rows="2" placeholder="Write some description...">$existingCaption</textarea>
+    </div>
+HTML;
+    }
+
+    echo <<<HTML
             <!-- Media Position -->
             <div class="col-md-6">
                 <label for="$positionId" class="form-label">Media Position</label>
@@ -68,7 +91,7 @@ function renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpl
                        data-status="$statusId"
                        accept="image/*,video/*"                       
                        >
-                <small class="form-text text-muted">Supported: JPG, PNG, WEBP, GIF, MP4, WebM, MOV (max 50MB)</small>
+                <small class="form-text text-muted">Supported: JPG, PNG, WEBP, GIF, MP4, WebM, MOV (max 40MB)</small>
                 <div id="$previewId" class="mt-3">
 HTML;
     if ($isEdit) {
@@ -101,50 +124,68 @@ HTML;
 HTML;
 }
 
-function renderMediaSection($conn, $pageSlug, $sectionId, $sectionSlug, $sectionTitle)
+function buildSectionContents(mysqli $conn, SectionPageDTO $sectionDTO)
 {
+
+    $sectionId = $sectionDTO->sectionId;
+    $sectionSlug = $sectionDTO->sectionSlug;
+    $sectionTitle = $sectionDTO->sectionTitle;
+    $pageSlug = $sectionDTO->pageSlug;
     $accordionId = "accordion-" . $sectionSlug;
     $collapseId = "collapse-" . $sectionSlug;
     $headingId = "heading-" . $sectionSlug;
+    $isResume = $pageSlug === 'about_me' && $sectionSlug === 'resume';
+
     // === FETCH MEDIA CONTENT FROM uploads TABLE ===
     $stmt = $conn->prepare("
-    SELECT u.path, u.caption, u.media_type, u.position, su.upload_id 
+    SELECT u.path, u.caption, u.media_type, u.position, su.upload_id, u.heading
     FROM section_upload su
     JOIN uploads u ON u.id = su.upload_id
     WHERE su.section_id = ?
-    ORDER BY su.id DESC    
+    ORDER BY su.id ASC    
 ");
     $stmt->bind_param("i", $sectionId);
     $stmt->execute();
     $result = $stmt->get_result();
     $uploads = $result->fetch_all(MYSQLI_ASSOC);  // fetch all rows at once    
     $isAdminEditing = (isset($_SESSION) && isset($_SESSION['logged_in'])); // this will flag whether to show editing options or not
+    $buttonName = ($isResume && count($uploads) > 0) ? "Update" : "Add";
 
 
     echo <<<HTML
     <section id="{$sectionSlug}" class="py-5">
-        <div class="container">
-            <p class="heading-3 text-center mb-5" data-aos="fade-up" data-aos-easing="linear" data-aos-duration="700">
+        <div class="container">            
+HTML;
+
+    if ($pageSlug !== 'about_me' || $isResume) {
+        echo <<<HTML
+        <p class="heading-2 text-center mb-5">
                 {$sectionTitle}
             </p>
-HTML;
+    HTML;
+    }
+
     if ($isAdminEditing) {
         echo <<<HTML
-                <div class="row mb-4">
-                    <div class="col-md-12">
-                        <div class="accordion" id="{$accordionId}">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="{$headingId}">
-                                    <button class="accordion-button collapsed" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#{$collapseId}"
-                                            aria-expanded="false" aria-controls="{$collapseId}">
-                                        Manage - {$sectionTitle}
-                                    </button>
-                                </h2>
-                                <div id="{$collapseId}" class="accordion-collapse collapse"
-                                     aria-labelledby="{$headingId}" data-bs-parent="#{$accordionId}">
-                                    <div class="accordion-body">
+    <div class="row mb-4">
+        <div class="col-md-12 text-end mb-4">
+            <button class="btn btn-md mb-1 btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#{$collapseId}" aria-expanded="false" aria-controls="{$collapseId}">
+                $buttonName
+            </button>
     HTML;
+        if (!$isResume) {
+            echo <<<HTML
+            <button class="btn btn-md mb-1 btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#{$accordionId}" aria-expanded="false" aria-controls="{$accordionId}">
+                Manage
+            </button>
+        HTML;
+        }
+        echo <<<HTML
+        </div>
+        <div class="col-md-12">            
+            <div id="{$collapseId}" class="collapse" aria-labelledby="{$headingId}">
+                <div class="card card-body p-3">
+HTML;
         if ($pageSlug == 'about_me' && $sectionSlug == 'resume') {
             $isEdit = !empty($uploads);
             $previewId = "resume-media-preview";
@@ -155,139 +196,150 @@ HTML;
         <div class="mb-3">
             <label for="resumeFile" class="form-label">Upload Resume (PDF only):</label>
             <input type="file" name="media" data-preview="$previewId"
-                       data-status="$statusId" class="form-control" id="resumeFile" name="resume" accept=".pdf" required>
+                       data-status="$statusId" class="form-control" id="resumeFile" accept=".pdf" required>
         </div>
         <input type="hidden" name="page_slug" value="$pageSlug">
         <input type="hidden" name="section_slug" value="$sectionSlug">
         <input type="hidden" name="section_id" value="$sectionId">
         <input type="hidden" name="upload_id" value="$uploadId">
         <div class="mt-2" id="$statusId"></div>
-    HTML;
+HTML;
             if ($isEdit) {
-
                 echo '<button type="submit" class="btn btn-primary">Update</button>
-                <button type="button" id="remove-upload-resume-' . $uploadId . '" class="btn btn-danger delete-resume-btn visible-delete-button">Delete Existing</button>';
+            <button type="button" id="remove-upload-resume-' . $uploadId . '" class="btn btn-danger delete-resume-btn visible-delete-button ms-2">Delete Existing</button>';
             } else {
                 echo '<button type="submit" class="btn btn-primary">Upload</button>';
             }
-
             echo <<<HTML
-        <div id="$previewId" class="mt-3">        
+        <div id="$previewId" class="mt-3"></div>
     </form>
-    HTML;
+HTML;
         } else {
-
-            renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId);
+            buildAddContentFormForSection($pageSlug, $sectionSlug, $sectionId);
         }
 
         echo <<<HTML
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
-    HTML;
+            </div>
+        </div>
+    </div>
+HTML;
     }
-
-    echo "<div id='section-media-container-$sectionId'>";
+    if (!$isResume) {
+        echo <<<HTML
+    <div id="{$accordionId}" class="collapse" aria-labelledby="{$headingId}">
+        <div class="manage-content-uploads-container-{$sectionId}">
+HTML;
+        foreach ($uploads as $existingUpload) {
+            buildManageContentForm($pageSlug, $sectionSlug, $sectionId, $existingUpload);
+        }
+        if (count($uploads) == 0) {
+            echo '<h3 style="text-align:center;">Add some content.</h3>';
+        }
+        echo <<<HTML
+    </div>
+    </div>
+HTML;
+    }
+    echo "    
+    <div id='section-media-container-$sectionId'>";
     foreach ($uploads as $existingUpload) {
-        renderSingleMediaItem($sectionId, $existingUpload, $pageSlug, $sectionSlug, $isAdminEditing);
+        buildSingleContent($sectionId, $existingUpload, true);
     }
     echo '</div>';
 
     echo "</div></section>";
 }
 
-function renderSingleMediaItem($sectionId, $existingUpload, $pageSlug = null, $sectionSlug = null, $isAdminEditing)
+function buildSingleContent($sectionId, $existingUpload, $existingContent)
 {
     $uploadId = $existingUpload['upload_id'];
-    $uniqueId = "accordion-{$sectionId}-{$uploadId}";
     $mediaHtml = '';
-    $mediaPath = htmlspecialchars($existingUpload['path']);
-    $caption = htmlspecialchars($existingUpload['caption']);
-    $position = ($existingUpload['position'] === 'right') ? 'order-lg-1' : 'order-lg-2';
-    $inversePosition = ($existingUpload['position'] === 'right') ? 'order-lg-2' : 'order-lg-1';
+    $mediaPath = htmlspecialchars($existingUpload['path'] ?? '');
+    $caption = htmlspecialchars($existingUpload['caption'] ?? '');
+    $mediaType = $existingUpload['media_type'] ?? '';
+    $position = ($existingUpload['position'] === 'right') ? 'order-1' : 'order-2';
+    $inversePosition = ($existingUpload['position'] === 'right') ? 'order-2' : 'order-1';
+    $headingAosClass = $existingContent ? 'data-aos="fade-up" data-aos-easing="linear" data-aos-duration="700"' : "";
+    $pictureAosClass = $existingContent ? 'data-aos="fade-down" data-aos-duration="1000"' : "";
+    $captionAosClass = $existingContent ? 'data-aos="flip-bottom" data-aos-easing="linear" data-aos-duration="600"' : "";
 
-    if ($existingUpload['media_type'] === 'pdf') {
+    // If media type is PDF, render PDF block
+    if ($mediaType === 'pdf') {
         $path = "assets/images/uploads/{$mediaPath}";
-
         echo <<<HTML
         <div class="row">
-        <div class="col-md-12">
-        <input type="hidden" id="pdfPath" value="$path">
-        <div id="pdf-loading" style="display: none; font-style: italic;" class="my-2">Loading PDF preview...</div>
-        <div id="pdf-preview-container" class="mt-3">            
-            </div>            
-        </div>
-        <div class="mt-2" style="display:none;" id="resume-download-button">
+            <div class="col-md-12">
+                <input type="hidden" id="pdfPath" value="$path">
+                <div id="pdf-loading" style="display: none; font-style: italic;" class="my-2">Loading PDF preview...</div>
+                <div id="pdf-preview-container" class="mt-3"></div>
+            </div>
+            <div class="mt-2" style="display:none;" id="resume-download-button">
                 <a href="{$path}" download class="btn btn-secondary">Download PDF</a>
+            </div>
         </div>
-    </div>
-HTML;
+        HTML;
         return;
     }
 
-    if ($existingUpload['media_type'] === 'image') {
+    // If media is image or video, build media HTML
+    if ($mediaType === 'image') {
         $imgSrc = "assets/images/uploads/{$mediaPath}";
         $videoSrc = '';
         $imgClass = 'img-fluid rounded shadow';
         $videoClass = 'img-fluid rounded shadow hide-empty-asset';
-    } elseif ($existingUpload['media_type'] === 'video') {
+
+        $mediaHtml = "<img src='{$imgSrc}' alt='Media' class='{$imgClass}' />";
+    } elseif ($mediaType === 'video') {
         $imgSrc = '';
         $videoSrc = "assets/images/uploads/{$mediaPath}";
         $imgClass = 'img-fluid rounded shadow hide-empty-asset';
         $videoClass = 'img-fluid rounded shadow';
+
+        $mediaHtml = "<video src='{$videoSrc}' controls class='{$videoClass}'></video>";
     }
 
-    $mediaHtml = "
-        <img src='{$imgSrc}' alt='Media' class='{$imgClass}' />
-        <video src='{$videoSrc}' controls class='{$videoClass}'></video>
-    ";
+    // Render heading if available
+    if (!empty($existingUpload['heading'])) {
+        echo <<<HTML
+        <h3 class="heading-2 text-center mb-5" id="heading-container-$uploadId" $headingAosClass>
+            {$existingUpload['heading']}
+        </h3>
+        HTML;
+    }
 
-    echo <<<HTML
-    <div id="media-preview-container-$uploadId" class="uploaded-asset-container">
-        <div class="row justify-content-center align-items-center mb-4">
-            <div class="col-lg-8 col-md-12 {$position}">
-                <p class="paragraph text-justify mb-3">{$caption}</p>
-            </div>
-            <div class="col-lg-4 {$inversePosition} image-wrapper d-flex">
-                {$mediaHtml}
-            </div>            
-        </div>
-HTML;
-
-    // Only render edit section if connection details are provided    
-    echo <<<HTML
-        <div class="row justify-content-end align-items-center mb-2">
-            <div class="col-lg-11">
-                <div class="collapse" id="$uniqueId">
-HTML;
-    renderMediaUploadForm($pageSlug, $sectionSlug, $sectionId, $existingUpload);
-    echo <<<HTML
+    // If no media, render full-width caption
+    if (empty($mediaHtml)) {
+        echo <<<HTML
+        <div id="media-preview-container-$uploadId" class="uploaded-asset-container">
+            <div class="row justify-content-center align-items-center mb-4">
+                <div class="col-md-12" $captionAosClass>
+                    <p class="paragraph text-justify mb-3">{$caption}</p>
                 </div>
             </div>
-HTML;
-    if ($isAdminEditing) {
-        echo <<<HTML
-            <div class="col-lg-1 text-end">
-                <button class="btn btn-warning" type="button" data-bs-toggle="collapse" data-bs-target="#$uniqueId" aria-expanded="false" aria-controls="$uniqueId">
-                    Edit
-                </button>
-            </div>
-HTML;
-    }
-    echo <<<HTML
         </div>
-    </div>
-HTML;
+        HTML;
+    } else {
+        // Standard image/video + caption layout
+        echo <<<HTML
+        <div id="media-preview-container-$uploadId" class="uploaded-asset-container">
+            <div class="row justify-content-center align-items-center mb-4">
+                <div class="col-lg-8 col-md-8 {$position}" $captionAosClass>
+                    <p class="paragraph text-justify mb-3">{$caption}</p>
+                </div>
+                <div class="col-lg-4 col-md-4 {$inversePosition} image-wrapper d-flex" $pictureAosClass>
+                    {$mediaHtml}
+                </div>
+            </div>
+        </div>
+        HTML;
+    }
 }
+
 
 // Function to generate accordion form for adding new gallery items
 function generateGalleryAccordionForm($section_id, $type = 'image')
 {
-
-
     $isVideo = ($type === 'video');
     $title = $isVideo ? 'Add New Video' : 'Add New Image';
     $formId = $isVideo ? 'videoGalleryForm' : 'imageGalleryForm';
@@ -618,58 +670,16 @@ HTML;
             <ul class="$dropdownClass dropdown-menu">
 HTML;
 
-            // Special handling for about_me
-            if ($pageUrl === 'about_me.php') {
-                $whoAmISections = [];
-                $otherSections = [];
 
-                foreach ($page['sections'] as $section) {
-                    if ($section['slug'] === 'resume') {
-                        $otherSections[] = $section;
-                    } else {
-                        $whoAmISections[] = $section;
-                    }
-                }
-
-                // Who am I submenu
-                if (!empty($whoAmISections)) {
-                    $parentHref = getSectionUrl('who-am-i', $whoAmISections[0]['page_url'], $whoAmISections[0]['section_url']);
-                    echo <<<HTML
-                <li class="dropdown-submenu position-relative dropend">
-                    <a class="dropdown-item dropdown-toggle" href="$parentHref">Who am I</a>
-                    <ul class="dropdown-menu sub-dropdown">
-HTML;
-                    foreach ($whoAmISections as $section) {
-                        $href = getSectionUrl($section['slug'], $section['page_url'], $section['section_url']);
-                        $title = htmlspecialchars($section['title']);
-                        echo <<<HTML
-                        <li><a class="dropdown-item" href="$href">$title</a></li>
-HTML;
-                    }
-                    echo <<<HTML
-                    </ul>
-                </li>
-HTML;
-                }
-
-                // Other sections like resume
-                foreach ($otherSections as $section) {
-                    $href = getSectionUrl($section['slug'], $section['page_url'], $section['section_url']);
-                    $title = htmlspecialchars($section['title']);
-                    echo <<<HTML
+            // Default dropdown list
+            foreach ($page['sections'] as $section) {
+                $href = getSectionUrl($section['slug'], $section['page_url'], $section['section_url']);
+                $title = htmlspecialchars($section['title']);
+                echo <<<HTML
                 <li><a class="dropdown-item" href="$href">$title</a></li>
 HTML;
-                }
-            } else {
-                // Default dropdown list
-                foreach ($page['sections'] as $section) {
-                    $href = getSectionUrl($section['slug'], $section['page_url'], $section['section_url']);
-                    $title = htmlspecialchars($section['title']);
-                    echo <<<HTML
-                <li><a class="dropdown-item" href="$href">$title</a></li>
-HTML;
-                }
             }
+
 
             echo <<<HTML
             </ul>
@@ -697,7 +707,7 @@ HTML;
 function getSectionUrl($sectionSlug, $page_url, $section_url)
 {
     if (!empty($page_url)) {
-        return $page_url . '#' . $sectionSlug;
+        return $page_url . '?page=' . $sectionSlug;
     }
 
     if (!empty($section_url)) {
@@ -706,6 +716,195 @@ function getSectionUrl($sectionSlug, $page_url, $section_url)
 
     // fallback
     return 'index.php';
+}
+
+function loadSectionPageDTO(mysqli $conn, string $queryKey = 'page'): ?SectionPageDTO
+{
+    $rawSlug = $_GET[$queryKey] ?? '';
+    if (empty($rawSlug)) {
+        echo "No section slug provided.<br>";
+        return null;
+    }
+
+    $stmt = $conn->prepare("
+        SELECT 
+            s.slug AS section_slug,
+            s.title AS section_title,
+            s.id AS section_id,
+            p.id AS page_id,
+            p.slug AS page_slug,
+            p.title AS page_title,
+            p.page_url AS page_url
+        FROM sections s
+        JOIN pages p ON s.page_id = p.id
+        WHERE s.slug = ?
+    ");
+
+    $stmt->bind_param("s", $rawSlug);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    if ($row) {
+        return new SectionPageDTO($row, $rawSlug);
+    }
+
+    return null;
+}
+
+function buildManageContentForm($pageSlug, $sectionSlug, $sectionId, $existingUpload)
+{
+    $existing = $existingUpload ?? [];
+    $existingId = $existing['upload_id'] ?? '';
+
+    $formId = "mediaUploadForm-{$pageSlug}-{$sectionSlug}-{$existingId}";
+    $captionId = "caption-{$pageSlug}-{$sectionSlug}-{$existingId}";
+    $fileInputId = "media-{$pageSlug}-{$sectionSlug}-{$existingId}";
+    $positionId = "media-position-{$pageSlug}-{$sectionSlug}-{$existingId}";
+
+    $existingCaption = htmlspecialchars($existing['caption'] ?? '');
+    $existingPosition = $existing['position'] ?? '';
+    $existingMediaPath = $existing['path'] ?? '';
+    $existingMediaType = $existing['media_type'] ?? '';
+    $statusId = "upload-status-{$pageSlug}-{$sectionSlug}-{$existingId}";
+    $previewId = "media-preview-{$pageSlug}-{$sectionSlug}-{$existingId}";
+
+    $leftSelected = ($existingPosition === 'left') ? 'selected' : '';
+    $rightSelected = ($existingPosition === 'right') ? 'selected' : '';
+    $buttonLabel = 'Update';
+
+    $hasHeading = $pageSlug === 'about_me' && $sectionSlug === 'who_am_i' && !empty($existingUpload['heading']);
+
+    $previewHtml = '';
+    if ($existingMediaPath) {
+        $safeUrl = 'assets/images/uploads/' . htmlspecialchars($existingMediaPath);
+        if ($existingMediaType === 'image') {
+            $previewHtml = "<img src=\"$safeUrl\" style=\"max-width:100%; max-height:100px; border:1px solid #ccc; border-radius:6px;\" />";
+        } else {
+            $previewHtml = "<video controls style=\"max-width:100%; max-height:100px; border:1px solid #ccc; border-radius:6px;\" src=\"$safeUrl\"></video>";
+        }
+    }
+
+    echo <<<HTML
+<form id="$formId" enctype="multipart/form-data" class="media-upload-form mb-3">
+    <div class="row content-container">
+        <!-- Hidden Inputs -->
+        <input type="hidden" name="page_slug" value="$pageSlug">
+        <input type="hidden" name="section_slug" value="$sectionSlug">
+        <input type="hidden" name="section_id" value="$sectionId">
+        <input type="hidden" name="preview_id" value="$previewId">
+        <input type="hidden" name="upload_id" value="$existingId">
+        <input type="hidden" id="upload-form-container-$sectionId" name="form_id" value="$formId">
+HTML;
+
+    // Conditionally render columns
+    if ($hasHeading) {
+        $headingInputId = "heading-$pageSlug-$sectionSlug-$existingId";
+        $existingHeading = htmlspecialchars($existing['heading'] ?? '');
+
+        echo <<<HTML
+        <!-- Heading -->
+        <div class="col-md-2 d-flex flex-column justify-content-start align-items-center">
+            <label for="$headingInputId" class="form-label">Heading</label>
+            <input type="text" name="heading" id="$headingInputId" class="form-control editable-field" value="$existingHeading" placeholder="Section heading...">
+        </div>
+
+        <!-- Caption -->
+        <div class="col-md-2 d-flex flex-column justify-content-start align-items-center">
+            <label for="$captionId" class="form-label">Text</label>
+            <textarea name="caption" required id="$captionId" class="form-control editable-field" rows="2" placeholder="Write description...">$existingCaption</textarea>
+        </div>
+
+        <!-- Position -->
+        <div class="col-md-2 d-flex flex-column justify-content-start align-items-center">
+            <label for="$positionId" class="form-label">Position</label>
+            <select name="position" id="$positionId" class="form-select editable-field">
+                <option value="left" $leftSelected>Left</option>
+                <option value="right" $rightSelected>Right</option>
+            </select>
+        </div>
+
+        <!-- File Upload -->
+        <div class="col-md-2 d-flex flex-column justify-content-start align-items-center">
+            <label for="$fileInputId" class="form-label">Image or Video</label>
+            <input type="file" name="media" id="$fileInputId"
+                   class="form-control media-input editable-field"
+                   data-form="$formId"
+                   data-preview="$previewId"
+                   data-status="$statusId"
+                   accept="image/*,video/*">
+            <small class="form-text text-muted">JPG, PNG, MP4, etc. Max 40MB</small>
+        </div>
+
+        <!-- Preview -->
+        <div class="col-md-2 d-flex flex-column justify-content-start align-items-center">
+            <label class="form-label">Preview</label>
+            <div id="$previewId">$previewHtml</div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="col-md-2 d-flex flex-column justify-content-start align-items-center">
+            <label class="form-label">Actions</label>
+            <button type="submit" class="btn btn-primary btn-sm mb-2">$buttonLabel</button>
+            <button type="button" class="btn btn-danger btn-sm delete-media-btn visible-delete-button" data-form-id="$formId" data-upload-id="$existingId">Delete</button>
+            <div class="mt-1" id="delete-info-$existingId"></div>
+        </div>
+HTML;
+    } else {
+        // original 5-item structure
+        echo <<<HTML
+        <!-- Caption -->
+        <div class="col-md-3 d-flex flex-column justify-content-start align-items-center">
+            <label for="$captionId" class="form-label">Text</label>
+            <textarea name="caption" required id="$captionId" class="form-control editable-field" rows="2" placeholder="Write description...">$existingCaption</textarea>
+        </div>
+
+        <!-- Position -->
+        <div class="col-md-2 d-flex flex-column justify-content-start align-items-center">
+            <label for="$positionId" class="form-label">Position</label>
+            <select name="position" id="$positionId" class="form-select editable-field">
+                <option value="left" $leftSelected>Left</option>
+                <option value="right" $rightSelected>Right</option>
+            </select>
+        </div>
+
+        <!-- File Upload -->
+        <div class="col-md-3 d-flex flex-column justify-content-start align-items-center">
+            <label for="$fileInputId" class="form-label">Image or Video</label>
+            <input type="file" name="media" id="$fileInputId"
+                   class="form-control media-input editable-field"
+                   data-form="$formId"
+                   data-preview="$previewId"
+                   data-status="$statusId"
+                   accept="image/*,video/*">
+            <small class="form-text text-muted">JPG, PNG, MP4, etc. Max 40MB</small>
+        </div>
+
+        <!-- Preview -->
+        <div class="col-md-2 d-flex flex-column justify-content-start align-items-center">
+            <label class="form-label">Preview</label>
+            <div id="$previewId">$previewHtml</div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="col-md-2 d-flex flex-column justify-content-start align-items-center">
+            <label class="form-label">Actions</label>
+            <button type="submit" class="btn btn-primary btn-sm mb-2">$buttonLabel</button>
+            <button type="button" class="btn btn-danger btn-sm delete-media-btn visible-delete-button" data-form-id="$formId" data-upload-id="$existingId">Delete</button>
+            <div class="mt-1" id="delete-info-$existingId"></div>
+        </div>
+HTML;
+    }
+
+    // Closing section
+    echo <<<HTML
+        <div class="col-md-12">
+            <div class="mt-1" id="$statusId"></div>
+        </div>
+    </div>
+</form>
+HTML;
+
 }
 
 ?>

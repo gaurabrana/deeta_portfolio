@@ -9,7 +9,7 @@
     session_start();
 
     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-        header("Location: about_me.php");
+        header("Location: about_me.php?page=who_am_i");
         exit;  // Always exit after redirect
     }
 
@@ -17,7 +17,7 @@
 
     ?>
 
-    <link href="assets/css/about_us.css" rel="stylesheet" type="text/css" />
+    
 </head>
 
 <body>

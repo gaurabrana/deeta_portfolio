@@ -1,7 +1,7 @@
 $(document).ready(function () {
-    $(document).on('click', '.delete-media-btn', function () {
-        console.log("clicked");
+    $(document).on('click', '.delete-media-btn', function () {        
         const uploadId = $(this).data('upload-id');
+        const formId = $(this).data('form-id');
         const $button = $(this);
         const statusBox = document.getElementById("delete-info-" + uploadId);
         if (!uploadId) return;
@@ -17,6 +17,7 @@ $(document).ready(function () {
                 if (response.success) {
                     // remove container
                     $('#media-preview-container-' + uploadId).remove();
+                    $('#' + formId).remove();
                     if (response.file_deleted) {
                         showTemporaryStatus(
                             statusBox,
@@ -51,7 +52,6 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr, status, error) {
-                console.log(error);
                 showTemporaryStatus(
                     statusBox,
                     '<div class="alert alert-danger"> Error deleting media: ' + error + '</div > ',
@@ -62,30 +62,40 @@ $(document).ready(function () {
     });
 
 
-    document.querySelectorAll('.media-input').forEach(input => {
-        input.addEventListener('change', function () {
-            const file = this.files[0];
-            const previewId = this.dataset.preview;
-            const previewContainer = document.getElementById(previewId);
-            console.log(previewContainer);
-            previewContainer.innerHTML = '';
+    document.addEventListener('change', function (e) {
+        const input = e.target;
 
-            if (!file) return;
+        // Only proceed if the changed element has the class 'media-input'
+        if (!input.classList.contains('media-input')) return;
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const type = file.type;
-                if (type.startsWith('image/')) {
-                    previewContainer.innerHTML = `<img src="${e.target.result}" style="max-width:150px; max-height:150px; border:1px solid #ccc; border-radius:6px;">`;
-                } else if (type.startsWith('video/')) {
-                    previewContainer.innerHTML = `<video src="${e.target.result}" controls style="max-width:300px; max-height:300px; border:1px solid #ccc; border-radius:6px;"></video>`;
-                } else {
-                    previewContainer.innerHTML = '<div class="text-danger">Unsupported file type.</div>';
-                }
-            };
-            reader.readAsDataURL(file);
-        });
+        const file = input.files[0];
+        const previewId = input.dataset.preview;
+        const previewContainer = document.getElementById(previewId);
+        if (!previewContainer) return;
+
+        previewContainer.innerHTML = '';
+
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const type = file.type;
+            if (type.startsWith('image/')) {
+                previewContainer.innerHTML = `
+                <img src="${e.target.result}" style="max-width:150px; max-height:150px; border:1px solid #ccc; border-radius:6px;">
+            `;
+            } else if (type.startsWith('video/')) {
+                previewContainer.innerHTML = `
+                <video src="${e.target.result}" controls style="max-width:300px; max-height:300px; border:1px solid #ccc; border-radius:6px;"></video>
+            `;
+            } else {
+                previewContainer.innerHTML = `<div class="text-danger">Unsupported file type.</div>`;
+            }
+        };
+
+        reader.readAsDataURL(file);
     });
+
 
     document.body.addEventListener('submit', function (e) {
         if (e.target && e.target.matches('.media-upload-form')) {
@@ -111,8 +121,7 @@ $(document).ready(function () {
                     }
                     return res.json();
                 })
-                .then(data => {
-                    console.log(data);
+                .then(data => {                    
                     if (data.success) {
                         // Successful upload                        
                         showTemporaryStatus(
@@ -120,9 +129,6 @@ $(document).ready(function () {
                             `<div class="alert alert-success">${data.message}</div>`,
                             { duration: 3000 }
                         );
-
-                        // Clear any previous preview
-                        document.getElementById(previewId).innerHTML = '';
 
                         // Make button visible if hidden
                         if (deleteButton && !deleteButton.classList.contains('visible-delete-button')) {
@@ -151,16 +157,10 @@ $(document).ready(function () {
                         }
 
                         if (data.new_upload) {
-                            // Append the new media HTML
-                            $(data.html).appendTo('#section-media-container-' + data.section_id);
-
-                            // Initialize AOS just for new elements
-                            AOS.init({
-                                startEvent: 'load',
-                                disable: false,
-                                once: false,
-                                mirror: false,
-                            }, true); // The 'true' parameter forces reinitialization                            
+                            // Clear any previous preview
+                            document.getElementById(previewId).innerHTML = '';
+                            $('#section-media-container-' + data.section_id).append(data.content_html);
+                            $('.manage-content-uploads-container-' + data.section_id).append(data.manage_content_html);
                         }
                         else {
                             // Update the media display
@@ -253,10 +253,6 @@ $(document).ready(function () {
 
         const formData = new FormData(this);
 
-        for (let [key, value] of formData.entries()) {
-            console.log(`${key}:`, value);
-        }
-
         fetch('./database/upload.php', {
             method: 'POST',
             body: formData
@@ -268,7 +264,6 @@ $(document).ready(function () {
                 return res.json();
             })
             .then(data => {
-                console.log(data);
                 if (data.success) {
                     // Successful upload                        
                     showTemporaryStatus(
@@ -700,7 +695,6 @@ function handleDelete(buttonClass) {
                     delete_type: 'gallery'
                 }),
                 success: function (response) {
-                    console.log(response);
                     if (response.success) {
                         listItem.fadeOut(300, function () {
                             $(this).remove();
@@ -877,41 +871,11 @@ function updateMediaSection(data) {
         sectionEl.classList.remove('hide-empty-asset');
     }
 
-    // 1. Update <p> tag content (caption)
-    const pTag = sectionEl.querySelector('p');
-    if (pTag) {
-        pTag.textContent = data.caption || '';
+    const headingEl = document.getElementById('heading-container-' + data.upload_id)
+
+    if (headingEl) {
+        headingEl.remove();
     }
 
-    // Find both img and video
-    const imgEl = sectionEl.querySelector('img');
-    const videoEl = sectionEl.querySelector('video');
-
-    if (data.media_type === 'image' && imgEl) {
-        imgEl.setAttribute('src', 'assets/images/uploads/' + data.path);
-        imgEl.classList.remove('hide-empty-asset');
-        videoEl.classList.add('hide-empty-asset');
-    } else if (data.media_type === 'video' && videoEl) {
-        videoEl.setAttribute('src', 'assets/images/uploads/' + data.path);
-        videoEl.classList.remove('hide-empty-asset');
-        imgEl.classList.add('hide-empty-asset');
-        videoEl.load(); // reloads video with new source
-    }
-
-    // 3. Update Bootstrap order classes
-    const leftCol = sectionEl.querySelector('.col-lg-6:not(.image-wrapper)');
-    const rightCol = sectionEl.querySelector('.col-lg-6.image-wrapper');
-
-    if (leftCol && rightCol) {
-        const newLeftClass = data.position === 'right' ? 'order-lg-1' : 'order-lg-2';
-        const newRightClass = data.position === 'right' ? 'order-lg-2' : 'order-lg-1';
-
-        // Remove existing order-lg-* classes
-        leftCol.classList.remove('order-lg-1', 'order-lg-2');
-        rightCol.classList.remove('order-lg-1', 'order-lg-2');
-
-        // Add updated classes
-        leftCol.classList.add(newLeftClass);
-        rightCol.classList.add(newRightClass);
-    }
+    sectionEl.outerHTML = data.content_html;
 }

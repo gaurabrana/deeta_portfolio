@@ -8,7 +8,7 @@ include("base/header.php");
 <head>
     <meta charset="UTF-8">
     <title>Reset Admin Password</title>
-    <link href="assets/css/about_us.css" rel="stylesheet" type="text/css" />
+    
 </head>
 
 <body>

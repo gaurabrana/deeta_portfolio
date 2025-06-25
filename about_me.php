@@ -8,29 +8,23 @@
     <?php
     include("base/header.php");
     ?>
-    <link href="assets/css/about_us.css" rel="stylesheet" type="text/css" />
+
 </head>
 
 <body>
     <div class="preloader" id="preloader">
         <img src="assets/images/preloader.gif" alt="Loading..." />
     </div>
-    <!-- Header Section -->    
+    <!-- Header Section -->
 
     <div class="container-fluid content-section">
         <div class="all-contents">
 
             <div class="container content-sections">
                 <?php
-                $query = "SELECT s.id, s.slug, s.title, p.slug as pageSlug 
-          FROM sections s 
-          JOIN pages p ON s.page_id = p.id 
-          WHERE p.slug = 'about_me'";
-
-                $result = $conn->query($query);
-
-                while ($row = $result->fetch_assoc()) {
-                        renderMediaSection($conn, $row['pageSlug'], $row['id'], $row['slug'], $row['title']);
+                $sectionDTO = loadSectionPageDTO($conn);
+                if ($sectionDTO) {
+                    buildSectionContents($conn, $sectionDTO);
                 }
                 ?>
 
@@ -38,7 +32,7 @@
 
         </div>
     </div>
- <?php
+    <?php
     include("base/footer.php");
     ?>
 

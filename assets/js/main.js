@@ -174,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             .text(res.message + ' Redirecting...');
 
                         setTimeout(() => {
-                            window.location.href = 'about_me.php';
+                            window.location.href = 'about_me.php?page=who_am_i';
                         }, 1000);
                     } else if (res.status === 'error') {
                         $status
