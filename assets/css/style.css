@@ -916,6 +916,7 @@ header {
   /* Enables pseudo-element positioning */
   z-index: 0;
   /* Base layer for body */
+  background-color: var(--quaternary-color);
 }
 
 .content-section::before {
@@ -1004,8 +1005,6 @@ section {
   /* Added subtle rounding */
   padding: 10px;
   margin: 8px 0;
-  /* Added vertical margin */
-  background-color: #fff;
   /* Explicit white background */
 
   /* Typography */
