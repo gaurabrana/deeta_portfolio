@@ -22,25 +22,42 @@ function handleMediaUpload()
         $fileUploaded = ($input['file'] && $input['file']['error'] === UPLOAD_ERR_OK);
 
         if (!$fileUploaded) {
-
-            // No file uploaded: check if upload record exists
             $existingUpload = getExistingUpload($sectionId, $input['upload_id']);
-            if (!$existingUpload) {
-                throw new Exception('No file uploaded and no existing upload found for this section.');
+
+            if ($existingUpload) {
+                // Update existing record
+                updateUpload(
+                    $existingUpload['path'],
+                    $input['caption'],
+                    $existingUpload['media_type'],
+                    $input['position'],
+                    $input['upload_id'],
+                    $input['heading']
+                );
+
+                $uploadResult = [
+                    'filename' => $existingUpload['path'],
+                    'media_type' => $existingUpload['media_type'],
+                    'unlinkSuccess' => null,
+                    'existingPath' => null,
+                    'upload_id' => $input['upload_id']
+                ];
+            } else {
+                // Insert a new record even without a file (store null path)
+                $emptyFilename = '';
+                $mediaType = null; // Or 'text-only', based on your logic
+                $newUploadId = insertUploadRecord($sectionId, $emptyFilename, $input['caption'], $mediaType, $input['position'], $input['heading']);
+
+                $uploadResult = [
+                    'filename' => $emptyFilename,
+                    'media_type' => $mediaType,
+                    'unlinkSuccess' => null,
+                    'existingPath' => null,
+                    'upload_id' => $newUploadId
+                ];
             }
 
-            // Update caption/position only, no file upload
-            updateUpload($sectionId, $existingUpload['path'], $input['caption'], $existingUpload['media_type'], $input['position']);
-
-            // Prepare success response with existing file info
-            $output = prepareSuccessResponse($output, [
-                'filename' => $existingUpload['path'],
-                'media_type' => $existingUpload['media_type'],
-                'unlinkSuccess' => null,
-                'existingPath' => null,
-                'upload_id' => $input['upload_id']
-            ], $input);
-
+            $output = prepareSuccessResponse($output, $uploadResult, $input);
         } else {
             // File uploaded: validate file
             $fileInfo = validateUploadedFile($input['file']);
@@ -80,7 +97,8 @@ function validateAndProcessInput($postData, $fileData)
         'position' => $postData['position'] ?? 'left',
         'section_id' => $postData['section_id'] ?? '',
         'upload_id' => $postData['upload_id'] ?? '',
-        'new_upload' => empty($postData['upload_id'])
+        'new_upload' => empty($postData['upload_id']),
+        'heading' => trim($postData['heading'] ?? ''),
     ];
 
     if (empty($input['page_slug']) || empty($input['section_slug'])) {
@@ -205,16 +223,16 @@ function processFileUpload($file, $mediaType, $sectionId, $input)
     if (!move_uploaded_file($file["tmp_name"], $targetFile)) {
         throw new Exception('Error saving file.');
     }
-    
+
     // Check for existing upload
     $existingUpload = getExistingUpload($sectionId, $input['upload_id']);
-    $existingPath = $existingUpload ? $uploadDir . $existingUpload['path'] : null;
+    $existingPath = $existingUpload ? (!empty($existingPath) && file_exists($existingPath)) ? $uploadDir . $existingUpload['path'] : null : null;
 
     // Update or insert record
     if ($existingUpload) {
-        updateUpload($filename, $input['caption'], $mediaType, $input['position'], $input['upload_id']);
+        updateUpload($filename, $input['caption'], $mediaType, $input['position'], $input['upload_id'], $input['heading']);
     } else {
-        $newUploadId = insertUploadRecord($sectionId, $filename, $input['caption'], $mediaType, $input['position']);
+        $newUploadId = insertUploadRecord($sectionId, $filename, $input['caption'], $mediaType, $input['position'], $input['heading']);
     }
 
     // Clean up old file if it exists
@@ -277,12 +295,12 @@ function getExistingUpload($sectionId, $uploadId)
 }
 
 // Update existing upload record
-function updateUpload($filename, $caption, $mediaType, $position, $uploadId)
+function updateUpload($filename, $caption, $mediaType, $position, $uploadId, $heading)
 {
     global $conn;
 
-    $stmt = $conn->prepare("UPDATE uploads SET path = ?, caption = ?, media_type = ?, position = ? WHERE id = ?");
-    $stmt->bind_param("ssssi", $filename, $caption, $mediaType, $position, $uploadId);
+    $stmt = $conn->prepare("UPDATE uploads SET path = ?, caption = ?, media_type = ?, position = ?, heading = ? WHERE id = ?");
+    $stmt->bind_param("sssssi", $filename, $caption, $mediaType, $position, $heading, $uploadId, );
 
     if (!$stmt->execute()) {
         throw new Exception('Database update error.');
@@ -290,13 +308,14 @@ function updateUpload($filename, $caption, $mediaType, $position, $uploadId)
 }
 
 // Insert new upload record
-function insertUploadRecord($sectionId, $filename, $caption, $mediaType, $position)
+function insertUploadRecord($sectionId, $filename, $caption, $mediaType, $position, $heading)
 {
     global $conn;
 
     // Insert into uploads table first
-    $stmt = $conn->prepare("INSERT INTO uploads (path, caption, media_type, position) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $filename, $caption, $mediaType, $position);
+    $query = "INSERT INTO uploads (path, caption, media_type, position, heading) VALUES (?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sssss", $filename, $caption, $mediaType, $position, $heading);
 
     if (!$stmt->execute()) {
         throw new Exception('Failed to insert into uploads table: ' . $conn->error);
@@ -324,6 +343,7 @@ function prepareSuccessResponse($output, $uploadResult, $input)
     $output['path'] = $uploadResult['filename'];
     $output['media_type'] = $uploadResult['media_type'];
     $output['caption'] = htmlspecialchars($input['caption']);
+    $output['heading'] = htmlspecialchars($input['heading']);
     $output['position'] = $input['position'];
     $output['section_id'] = $input['section_id'];
     $output['section_slug'] = $input['section_slug'];
@@ -332,21 +352,28 @@ function prepareSuccessResponse($output, $uploadResult, $input)
     $newUpload = $input['new_upload'];
     $output['new_upload'] = $newUpload;
 
+    $tempUpload = [
+        'upload_id' => $uploadResult['upload_id'], // Use existing ID or generate a temporary one
+        'path' => $uploadResult['filename'],
+        'caption' => $input['caption'],
+        'position' => $input['position'],
+        'media_type' => $uploadResult['media_type'],
+        'heading' => $input['heading']
+    ];
+
+    // Capture the output of renderSingleMediaItem
+    if (empty($uploadResult['media_type']) || $uploadResult['media_type'] !== "pdf") {
+        ob_start();
+        buildSingleContent($input['section_id'], $tempUpload, false);
+        $output['content_html'] = ob_get_clean();
+    }
+
     if ($newUpload) {
-        $tempUpload = [
-            'upload_id' => $uploadResult['upload_id'], // Use existing ID or generate a temporary one
-            'path' => $uploadResult['filename'],
-            'caption' => $input['caption'],
-            'position' => $input['position'],
-            'media_type' => $uploadResult['media_type']
-        ];        
-
-        // Capture the output of renderSingleMediaItem
-        if ($uploadResult['media_type'] === 'image' || $uploadResult['media_type'] === 'video') {
-
+        // Capture the output of manage content html
+        if (empty($uploadResult['media_type']) || $uploadResult['media_type'] !== "pdf") {
             ob_start();
-            renderSingleMediaItem($input['section_id'], $tempUpload, $input['page_slug'], $input['section_slug'], true);
-            $output['html'] = ob_get_clean();
+            buildManageContentForm($input['page_slug'], $input['section_slug'], $input['section_id'], $tempUpload);
+            $output['manage_content_html'] = ob_get_clean();
         }
     }
 
@@ -361,6 +388,11 @@ function prepareSuccessResponse($output, $uploadResult, $input)
         } else {
             $output['file_missing'] = 'Existing file could not be found to update.';
         }
+    } else {
+        $output['file_delete_error'] = null;
+        $output['file_deleted'] = null;
+        $output['file_exists_but_not_deleted'] = null;
+        $output['file_missing'] = null;
     }
 
     return $output;

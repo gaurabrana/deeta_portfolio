@@ -40,14 +40,18 @@ $success = $stmt->execute([$uploadId]);
 $stmt = $conn->prepare("DELETE FROM uploads WHERE id = ?");
 $success = $stmt->execute([$uploadId]);
 
+$response = ['success' => $success];
+
+if (empty($upload['path']) || !isset($upload['path'])) {
+    echo json_encode($response);
+    exit;
+}
 // Delete file from disk
 $unlinkSuccess = null; // initialize
 
 if ($success && file_exists($filePath)) {
     $unlinkSuccess = unlink($filePath);
 }
-
-$response = ['success' => $success];
 
 if ($unlinkSuccess === false) {
     $response['file_delete_error'] = 'File exists but could not be deleted.';

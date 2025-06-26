@@ -4,57 +4,46 @@ $(window).on('load', function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     AOS.init();
-    const currentYear = new Date().getFullYear();
-    document.getElementById("current-year").textContent = currentYear;
 
-    document.addEventListener('DOMContentLoaded', function () {
-        function handleDropdown(navItemClass) {
-            const navItem = document.querySelector(`.${navItemClass} a.nav-link`);
-            if (!navItem) return;
+    // Select all nav items with a class ending with '-nav-item' and that have dropdown menus
+    const navItems = document.querySelectorAll('.navbar-nav > li.nav-item.dropdown');
 
-            navItem.addEventListener('click', function (e) {
-                if (window.innerWidth < 768) {
-                    e.preventDefault();
-                    const dropdownMenu = this.nextElementSibling;
-                    dropdownMenu?.classList.toggle('show');
-                }
-            });
+    navItems.forEach(navItem => {
+        const navLink = navItem.querySelector('a.nav-link');
+        if (!navLink) return;
 
-            // Only apply submenu handling if there are nested dropdowns
-            const dropdownRoot = document.querySelector(`.${navItemClass}`);
-            if (!dropdownRoot) return;
-
-            const submenuToggles = dropdownRoot.querySelectorAll('.dropdown-submenu > .dropdown-toggle');
-
-            submenuToggles.forEach(toggle => {
-                toggle.addEventListener('click', function (e) {
-                    if (window.innerWidth < 768) {
-                        e.preventDefault();
-                        const subMenu = this.nextElementSibling;
-                        subMenu?.classList.toggle('show');
-                        e.stopPropagation(); // Prevent outer dropdown from closing
-                    }
-                });
-            });
-        }
-
-        // Apply to all relevant menu items
-        handleDropdown('school-nav-item');
-        handleDropdown('about-nav-item');  // contains the nested 'Who am I' submenu
-        handleDropdown('gallery-nav-item');
-        handleDropdown('sports-nav-item');
-        handleDropdown('scouting-nav-item');
-        handleDropdown('givingback-nav-item');
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('.school-nav-item') && !e.target.closest('.about-nav-item') && !e.target.closest('.gallery-nav-item') && !e.target.closest('.sports-nav-item') && !e.target.closest('.scouting-nav-item') && !e.target.closest('.givingback-nav-item')) {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.remove('show');
-                });
+        navLink.addEventListener('click', function (e) {
+            if (window.innerWidth < 768) {
+                e.preventDefault();
+                const dropdownMenu = navLink.nextElementSibling;
+                dropdownMenu?.classList.toggle('show');
             }
         });
+
+        // Handle nested dropdown-submenu toggles
+        const submenuToggles = navItem.querySelectorAll('.dropdown-submenu > .dropdown-toggle');
+
+        submenuToggles.forEach(toggle => {
+            toggle.addEventListener('click', function (e) {
+                if (window.innerWidth < 768) {
+                    e.preventDefault();
+                    const subMenu = toggle.nextElementSibling;
+                    subMenu?.classList.toggle('show');
+                    e.stopPropagation();
+                }
+            });
+        });
     });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.navbar-nav > li.nav-item.dropdown')) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
+
 
     $('.video-source').change(function () {
         if ($(this).val() === 'youtube') {
@@ -145,6 +134,100 @@ document.addEventListener("DOMContentLoaded", function () {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         renderPdfPreview(pdfPath);
     }
+
+
+    $(document).ready(function () {
+        $('#login-form').on('submit', function (e) {
+            e.preventDefault(); // Prevent actual form submission
+
+            const $form = $(this);
+            const $status = $('#loginStatus');
+
+            $status
+                .removeClass('text-success text-danger')
+                .text('Logging in...')
+                .show();
+
+            $.ajax({
+                url: "./database/admin_login.php",
+                type: 'POST',
+                data: $form.serialize(),
+                success: function (response) {
+                    let res;
+
+                    // Try to parse JSON safely
+                    try {
+                        res = (typeof response === 'object') ? response : JSON.parse(response);
+                    } catch (e) {
+                        // Parsing failed, fallback error
+                        $status
+                            .removeClass('text-success')
+                            .addClass('text-danger')
+                            .text('Unexpected server response.');
+                        return;
+                    }
+
+                    if (res.status === 'success') {
+                        $status
+                            .removeClass('text-danger')
+                            .addClass('text-success')
+                            .text(res.message + ' Redirecting...');
+
+                        setTimeout(() => {
+                            window.location.href = 'about_me.php?page=who_am_i';
+                        }, 1000);
+                    } else if (res.status === 'error') {
+                        $status
+                            .removeClass('text-success')
+                            .addClass('text-danger')
+                            .text(res.message);
+                    } else {
+                        $status
+                            .removeClass('text-success')
+                            .addClass('text-danger')
+                            .text('Unknown response status.');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $status
+                        .removeClass('text-success')
+                        .addClass('text-danger')
+                        .text('An error occurred: ' + (error || 'Please try again.'));
+                }
+            });
+        });
+    });
+
+    $("#reset-password-form").on("submit", function (e) {
+        e.preventDefault();
+
+        const username = $("#username").val();
+        const newPassword = $("#new_password").val();
+        const confirmPassword = $("#confirm_password").val();
+
+        if (newPassword !== confirmPassword) {
+            $("#resetStatus").text("Passwords do not match.").show();
+            return;
+        }
+
+        $.ajax({
+            url: "database/reset_password.php",
+            method: "POST",
+            data: {
+                username: username,
+                new_password: newPassword
+            },
+            success: function (response) {
+                $("#resetStatus").removeClass("text-danger").addClass("text-success").text(response).show();
+                setTimeout(() => {
+                    window.location.href = 'login.php#login-container';
+                }, 1000);
+            },
+            error: function () {
+                $("#resetStatus").removeClass("text-success").addClass("text-danger").text("An error occurred.").show();
+            }
+        });
+    });
 });
 
 
