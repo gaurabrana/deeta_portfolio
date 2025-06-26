@@ -9,7 +9,7 @@
     session_start();
 
     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-        header("Location: about_me.php?page=who_am_i");
+        header("Location: index.php");
         exit;  // Always exit after redirect
     }
 

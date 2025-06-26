@@ -722,7 +722,7 @@ function loadSectionPageDTO(mysqli $conn, string $queryKey = 'page'): ?SectionPa
 {
     $rawSlug = $_GET[$queryKey] ?? '';
     if (empty($rawSlug)) {
-        echo "No section slug provided.<br>";
+        echo "<script>window.location.href = 'index.php';</script>";
         return null;
     }
 
