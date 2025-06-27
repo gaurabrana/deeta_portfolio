@@ -60,10 +60,11 @@
                 <div class="col-md-2"></div>
 
                 <!-- Text Column -->
-                <div class="col-md-5 text-start">
+                <div class="col-md-5 text-center">
                   <div class="p-4">
-                    <h2 class="text-uppercase fw-bold mb-1"><?= $part1 ?></h2>
-                    <h2 class="text-uppercase fw-bold mb-3"><?= $part2 ?></h2>
+                    <h2 class="text-uppercase fw-bold mb-1">Welcome</h2>
+                    <h2 class="text-uppercase fw-bold mb-1">To</h2>
+                    <h2 class="text-uppercase fw-bold mb-3">Deeta's World Of Vision</h2>
                     <p class="quote-text lead mb-2">
                       "<?= $quote ?>"
                     </p>
@@ -97,16 +98,10 @@
                     <div id="updateQuoteAccordion" class="accordion-collapse collapse" data-bs-parent="#updateAccordion">
                       <div class="accordion-body">
                         <form id="infoUpdateForm" enctype="multipart/form-data" method="POST">
-                          <div class="row">
-                            <!-- Heading -->
-                            <div class="col-md-6 mb-3">
-                              <label for="heading" class="form-label">Heading</label>
-                              <input type="text" class="form-control" name="heading" id="heading" value="<?= $heading ?>"
-                                required>
-                            </div>
+                          <div class="row">                          
 
                             <!-- Quote -->
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                               <label for="quote" class="form-label">Quote</label>
                               <input type="text" class="form-control" name="quote" id="quote" value="<?= $quote ?>"
                                 required>

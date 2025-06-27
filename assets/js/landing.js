@@ -41,19 +41,7 @@ $(document).ready(function () {
                 setTimeout(() => $('#updateStatus').fadeOut(), 3000);
 
                 $('#image').val('');
-
-                function splitHeading(heading) {
-                    const words = heading.trim().split(/\s+/);
-                    const half = Math.ceil(words.length / 2);
-                    return {
-                        part1: words.slice(0, half).join(' '),
-                        part2: words.slice(half).join(' ')
-                    };
-                }
-
-                const headingParts = splitHeading(response.heading);
-                $('.col-md-5.text-start h2.mb-1').text(headingParts.part1);
-                $('.col-md-5.text-start h2.mb-3').text(headingParts.part2);
+                
                 $('.quote-text').text('"' + response.quote + '"');
 
                 const path = "assets/images/uploads/index/" + response.imagePath;
